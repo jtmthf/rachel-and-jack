@@ -1,5 +1,5 @@
-import Image from "next/image";
-import engagement from "./engagement.png";
+import Image from 'next/image';
+import engagement from './engagement.png';
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
         fill
         sizes="100vw"
         style={{
-          objectFit: "cover",
+          objectFit: 'cover',
         }}
       />
     </main>
