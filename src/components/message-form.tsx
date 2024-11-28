@@ -1,30 +1,26 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { getDocument } from '@/lib/google-sheet';
+import { revalidatePath } from 'next/cache';
 
-interface MessageFormProps {
-  onSubmit?: (message: string) => void;
-}
+const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID!;
 
-export function MessageForm({ onSubmit }: MessageFormProps) {
-  const [message, setMessage] = useState('');
+export function MessageForm() {
+  async function submit(formData: FormData) {
+    'use server';
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      onSubmit?.(message);
-      setMessage('');
-    }
-  };
+    const doc = await getDocument(GOOGLE_SHEET_ID);
+    const sheet = doc.sheetsByIndex[0];
+    await sheet.addRow({ messages: formData.get('text') as string });
+
+    revalidatePath('/messages');
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form action={submit} className="flex gap-2">
       <Input
+        name="text"
         type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
         placeholder="Type your message..."
         className="flex-grow"
       />
