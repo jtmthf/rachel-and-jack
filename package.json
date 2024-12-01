@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@aws-sdk/credential-provider-web-identity": "^3.696.0",
+    "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-scroll-area": "^1.2.1",
+    "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-visually-hidden": "^1.1.0",
     "@vercel/functions": "^1.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

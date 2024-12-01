@@ -3,7 +3,7 @@ import engagement from './engagement.png';
 
 export default function Home() {
   return (
-    <main>
+    <main className="min-h-screen">
       <Image
         alt="Engagement"
         src={engagement}
@@ -11,9 +11,7 @@ export default function Home() {
         quality={100}
         fill
         sizes="100vw"
-        style={{
-          objectFit: 'cover',
-        }}
+        className="-z-10 object-cover"
       />
     </main>
   );
