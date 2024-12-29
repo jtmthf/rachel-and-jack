@@ -5,7 +5,6 @@ import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Separator } from './ui/separator';
 import {
   Sheet,
   SheetContent,
@@ -44,14 +43,14 @@ export function Navbar({ items }: Props) {
             ))}
           </div>
         </div>
-        <div className="ml-auto hidden md:flex">
+        {/* <div className="ml-auto hidden md:flex">
           <Link
             href="/rsvp"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             RSVP
           </Link>
-        </div>
+        </div> */}
         <div className="ml-auto flex md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -78,14 +77,14 @@ export function Navbar({ items }: Props) {
                     {item.title}
                   </Link>
                 ))}
-                <Separator />
+                {/* <Separator />
                 <Link
                   href="/rsvp"
                   className="text-sm font-medium transition-colors hover:text-primary"
                   onClick={() => setIsOpen(false)}
                 >
                   RSVP
-                </Link>
+                </Link> */}
               </nav>
             </SheetContent>
           </Sheet>

@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 const items = [
   { title: 'Our Story', href: '/our-story' },
-  { title: 'Photos', href: '/photos' },
-  { title: 'Q & A', href: '/q-and-a' },
-  { title: 'Travel', href: '/travel' },
-  { title: 'Registry', href: '/registry' },
+  // { title: 'Photos', href: '/photos' },
+  // { title: 'Q & A', href: '/q-and-a' },
+  // { title: 'Travel', href: '/travel' },
+  // { title: 'Registry', href: '/registry' },
 ];
 
 export default function RootLayout({
