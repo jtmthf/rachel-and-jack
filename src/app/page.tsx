@@ -3,16 +3,17 @@ import engagement from './engagement.png';
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <Image
-        alt="Engagement"
-        src={engagement}
-        placeholder="blur"
-        quality={100}
-        fill
-        sizes="100vw"
-        className="-z-10 object-cover"
-      />
+    <main className="flex items-center justify-center">
+      <div className="relative min-h-screen w-full">
+        <Image
+          alt="Engagement"
+          src={engagement}
+          placeholder="blur"
+          fill
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
     </main>
   );
 }

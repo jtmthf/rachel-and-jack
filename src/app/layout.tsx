@@ -24,9 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="z-10">
-          <Navbar items={items} />
-        </header>
+        <Navbar items={items} />
         {children}
       </body>
     </html>

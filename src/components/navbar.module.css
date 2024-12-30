@@ -1,0 +1,50 @@
+.header {
+  --thickness: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--background);
+}
+
+@supports (backdrop-filter: blur(16px)) {
+  .header {
+    background: var(--background);
+  }
+
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(16px);
+    background: linear-gradient(to bottom, var(--background), transparent 50%);
+    pointer-events: none;
+  }
+
+  .backdrop-edge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--thickness);
+    background: hsl(0deg 0% 100% / 0.1);
+    backdrop-filter: blur(12px) brightness(0.96);
+    transform: translateY(100%);
+    pointer-events: none;
+  }
+}
+
+@supports (mask-image: none) {
+  .backdrop {
+    height: 200%;
+    mask-image: linear-gradient(to bottom, black 0% 50%, transparent 50% 100%);
+  }
+  .backdrop-edge {
+    height: 100%;
+    inset: 0;
+    mask-image: linear-gradient(
+      to bottom,
+      black 0,
+      black var(--thickness),
+      transparent var(--thickness)
+    );
+  }
+}
