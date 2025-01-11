@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/navbar';
+import PageViewed from '@/lib/analytics/page-viewed';
 import type { Metadata } from 'next';
 import './globals.css';
 
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <PageViewed />
         <Navbar items={items} />
         {children}
       </body>
