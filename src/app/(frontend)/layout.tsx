@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const items = [
   { title: 'Our Story', href: '/our-story' },
   // { title: 'Photos', href: '/photos' },
-  // { title: 'Q & A', href: '/q-and-a' },
+  { title: 'FAQ', href: '/faq' },
   // { title: 'Travel', href: '/travel' },
   // { title: 'Registry', href: '/registry' },
 ];
