@@ -2,14 +2,16 @@
   "name": "rachel-and-jack",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "format": "prettier --write .",
+    "build:ci": "payload migrate && next build",
+    "dev": "next dev --turbopack",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "format": "prettier --write .",
+    "lint": "next lint",
+    "prepare": "husky",
+    "start": "next start"
   },
   "dependencies": {
     "@aws-sdk/credential-provider-web-identity": "^3.716.0",
