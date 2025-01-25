@@ -1,3 +1,4 @@
+import { Content } from '@/blocks/Content/config';
 import { Block, CollectionConfig } from 'payload';
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
@@ -62,7 +63,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'content',
       type: 'blocks',
-      blocks: [CardBlock],
+      blocks: [CardBlock, Content],
     },
   ],
   hooks: {

@@ -1,17 +1,22 @@
 import {
   AccordionBlock as AccordionBlockProps,
   CardBlock as CardBlockProps,
+  ContentBlock as ContentBlockProps,
 } from '@/payload-types';
 import AccordionBlock from './Accordion/Component';
 import CardBlock from './Card/Component';
+import ContentBlock from './Content/Component';
 
 const blockComponents = {
   accordion: AccordionBlock,
   card: CardBlock,
+  content: ContentBlock,
 };
 
 type Props = {
-  blocks?: Array<AccordionBlockProps | CardBlockProps> | null;
+  blocks?: Array<
+    AccordionBlockProps | CardBlockProps | ContentBlockProps
+  > | null;
 };
 
 export default function RenderBlock({ blocks }: Props) {

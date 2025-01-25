@@ -140,7 +140,7 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?: CardBlock[] | null;
+  content?: (CardBlock | ContentBlock)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -191,6 +191,43 @@ export interface AccordionBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'accordion';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentBlock".
+ */
+export interface ContentBlock {
+  columns?:
+    | {
+        size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
+        richText?: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format:
+              | 'left'
+              | 'start'
+              | 'center'
+              | 'right'
+              | 'end'
+              | 'justify'
+              | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'content';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -314,6 +351,7 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         card?: T | CardBlockSelect<T>;
+        content?: T | ContentBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -342,6 +380,21 @@ export interface AccordionBlockSelect<T extends boolean = true> {
     | {
         title?: T;
         content?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentBlock_select".
+ */
+export interface ContentBlockSelect<T extends boolean = true> {
+  columns?:
+    | T
+    | {
+        size?: T;
+        richText?: T;
         id?: T;
       };
   id?: T;
