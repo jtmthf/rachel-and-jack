@@ -95,7 +95,7 @@ export default async function ThingsToDo({ params: paramsPromise }: Args) {
               )}
             </CardHeader>
             <CardContent className="flex-1">
-              <CardTitle>{activity.title}</CardTitle>
+              <CardTitle className="mb-2">{activity.title}</CardTitle>
               <CardDescription>{activity.description}</CardDescription>
             </CardContent>
             <CardFooter>
