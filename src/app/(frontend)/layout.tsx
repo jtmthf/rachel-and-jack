@@ -11,10 +11,8 @@ export const metadata: Metadata = {
 
 const items = [
   { title: 'Our Story', href: '/our-story' },
-  // { title: 'Photos', href: '/photos' },
+  { title: 'Things to Do', href: '/things-to-do' },
   { title: 'FAQ', href: '/faq' },
-  // { title: 'Travel', href: '/travel' },
-  // { title: 'Registry', href: '/registry' },
 ];
 
 export default function RootLayout({
