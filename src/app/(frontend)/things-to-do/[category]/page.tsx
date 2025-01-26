@@ -134,6 +134,7 @@ const getThingsToDo = cache(async (category?: string) => {
     overrideAccess: draft,
     pagination: false,
     where: category ? { 'category.slug': { equals: category } } : {},
+    sort: 'title',
   });
 
   return result.docs;
