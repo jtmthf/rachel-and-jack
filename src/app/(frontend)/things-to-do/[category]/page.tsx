@@ -169,7 +169,9 @@ const getCategories = cache(async () => {
 });
 
 const getPlaceholderImage = cache(async (url: string) => {
-  const image = await fetch(url);
+  const image = await fetch(
+    `${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? 'localhost:3000'}/${url}`,
+  );
   const buffer = await image.arrayBuffer();
 
   const resizedImage = await sharp(buffer)
