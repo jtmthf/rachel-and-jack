@@ -13,6 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getPayload } from 'payload';
 import { cache } from 'react';
+import sharp from 'sharp';
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise });
@@ -81,7 +82,7 @@ export default async function ThingsToDo({ params: paramsPromise }: Args) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {thingsToDo.map((activity) => (
+        {thingsToDo.map((activity, index) => (
           <Card key={activity.id} className="flex flex-col">
             <CardHeader>
               {typeof activity.image === 'object' && (
@@ -91,6 +92,9 @@ export default async function ThingsToDo({ params: paramsPromise }: Args) {
                   width={300}
                   height={200}
                   className="h-48 w-full rounded-t-lg object-cover"
+                  placeholder="blur"
+                  blurDataURL={activity.blurDataURL}
+                  priority={index < 3}
                 />
               )}
             </CardHeader>
@@ -137,7 +141,15 @@ const getThingsToDo = cache(async (category?: string) => {
     sort: 'title',
   });
 
-  return result.docs;
+  return await Promise.all(
+    result.docs.map(async (activity) => ({
+      ...activity,
+      blurDataURL:
+        typeof activity.image === 'object' && activity.image.url
+          ? await getPlaceholderImage(activity.image.url)
+          : undefined,
+    })),
+  );
 });
 
 const getCategories = cache(async () => {
@@ -154,4 +166,18 @@ const getCategories = cache(async () => {
   });
 
   return result.docs;
+});
+
+const getPlaceholderImage = cache(async (url: string) => {
+  const image = await fetch(url);
+  const buffer = await image.arrayBuffer();
+
+  const resizedImage = await sharp(buffer)
+    .resize(10, 10, {
+      fit: 'inside',
+    })
+    .jpeg({ quality: 70 })
+    .toBuffer();
+
+  return `data:image/jpeg;base64,${resizedImage.toString('base64')}`;
 });
