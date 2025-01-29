@@ -7,7 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { ThingsToDoBlock as ThingsToDoBlockProps } from '@/payload-types';
+import type {
+  ThingsToDo,
+  ThingsToDoBlock as ThingsToDoBlockProps,
+} from '@/payload-types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BaseBlockProps } from '../RenderBlocks';
@@ -22,7 +25,17 @@ export default function ThingsToDoBlock({
   const [page, selectedCategory] = slug;
   const categories =
     rawCategories?.filter((category) => typeof category === 'object') ?? [];
-  const items = rawItems?.filter((item) => typeof item === 'object') ?? [];
+  const items =
+    (rawItems?.filter(
+      (item) =>
+        typeof item === 'object' &&
+        (selectedCategory === undefined ||
+          item.category?.some(
+            (category) =>
+              typeof category === 'object' &&
+              category.slug === selectedCategory,
+          )),
+    ) as ThingsToDo[]) ?? [];
 
   return (
     <>
