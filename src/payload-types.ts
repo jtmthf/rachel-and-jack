@@ -115,7 +115,7 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?: (CardBlock | ContentBlock)[] | null;
+  content?: (CardBlock | ContentBlock | ThingsToDoBlock)[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -207,16 +207,14 @@ export interface ContentBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "things-to-do".
+ * via the `definition` "ThingsToDoBlock".
  */
-export interface ThingsToDo {
-  id: number;
-  title: string;
-  category?: (number | ThingsToDoCategory)[] | null;
-  description: string;
-  image: number | Media;
-  updatedAt: string;
-  createdAt: string;
+export interface ThingsToDoBlock {
+  categories?: (number | ThingsToDoCategory)[] | null;
+  items?: (number | ThingsToDo)[] | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'things-to-do';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -226,6 +224,19 @@ export interface ThingsToDoCategory {
   id: number;
   label: string;
   slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "things-to-do".
+ */
+export interface ThingsToDo {
+  id: number;
+  title: string;
+  category?: (number | ThingsToDoCategory)[] | null;
+  description: string;
+  image: number | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -343,6 +354,7 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         card?: T | CardBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
+        'things-to-do'?: T | ThingsToDoBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -389,6 +401,16 @@ export interface ContentBlockSelect<T extends boolean = true> {
         richText?: T;
         id?: T;
       };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ThingsToDoBlock_select".
+ */
+export interface ThingsToDoBlockSelect<T extends boolean = true> {
+  categories?: T;
+  items?: T;
   id?: T;
   blockName?: T;
 }

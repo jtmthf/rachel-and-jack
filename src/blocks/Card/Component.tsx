@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CardBlock as CardBlockProps } from '@/payload-types';
-import RenderBlock from '../RenderBlocks';
+import RenderBlock, { BaseBlockProps } from '../RenderBlocks';
 
-export default function CardBlock({ title, content }: CardBlockProps) {
+type Props = BaseBlockProps & CardBlockProps;
+
+export default function CardBlock({ slug, title, content }: Props) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <RenderBlock blocks={content} />
+        <RenderBlock slug={slug} blocks={content} />
       </CardContent>
     </Card>
   );
