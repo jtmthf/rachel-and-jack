@@ -38,8 +38,6 @@ export async function generateStaticParams() {
       ];
     });
 
-  console.log('params', params);
-
   return params;
 }
 
