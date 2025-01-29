@@ -56,7 +56,7 @@ export default async function Page({ params: paramsPromise }: Args) {
   }
 
   return (
-    <article className="mx-auto w-full max-w-3xl space-y-6 p-4">
+    <article className="container mx-auto space-y-6 p-4">
       <h2 className="mb-6 text-center text-3xl font-bold">{page.title}</h2>
       <RenderBlock blocks={page.content} slug={slug} />
     </article>
