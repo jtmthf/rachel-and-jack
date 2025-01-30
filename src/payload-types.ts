@@ -14,6 +14,7 @@ export interface Config {
     users: User;
     media: Media;
     pages: Page;
+    'place-tag': PlaceTag;
     'things-to-do': ThingsToDo;
     'things-to-do-category': ThingsToDoCategory;
     'payload-locked-documents': PayloadLockedDocument;
@@ -25,6 +26,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
     'things-to-do': ThingsToDoSelect<false> | ThingsToDoSelect<true>;
     'things-to-do-category':
       | ThingsToDoCategorySelect<false>
@@ -115,7 +117,9 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?: (CardBlock | ContentBlock | ThingsToDoBlock)[] | null;
+  content?:
+    | (CardBlock | ContentBlock | PlaceBlock | StackBlock | ThingsToDoBlock)[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -207,6 +211,58 @@ export interface ContentBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PlaceBlock".
+ */
+export interface PlaceBlock {
+  title: string;
+  image?: (number | null) | Media;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  tags?: (number | PlaceTag)[] | null;
+  url?: string | null;
+  location?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'place';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "place-tag".
+ */
+export interface PlaceTag {
+  id: number;
+  label: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StackBlock".
+ */
+export interface StackBlock {
+  direction?: ('vertical' | 'horizontal') | null;
+  wrap?: boolean | null;
+  items?: (ContentBlock | PlaceBlock)[] | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'stack';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ThingsToDoBlock".
  */
 export interface ThingsToDoBlock {
@@ -258,6 +314,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'place-tag';
+        value: number | PlaceTag;
       } | null)
     | ({
         relationTo: 'things-to-do';
@@ -354,6 +414,8 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         card?: T | CardBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
+        place?: T | PlaceBlockSelect<T>;
+        stack?: T | StackBlockSelect<T>;
         'things-to-do'?: T | ThingsToDoBlockSelect<T>;
       };
   updatedAt?: T;
@@ -406,6 +468,36 @@ export interface ContentBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PlaceBlock_select".
+ */
+export interface PlaceBlockSelect<T extends boolean = true> {
+  title?: T;
+  image?: T;
+  description?: T;
+  tags?: T;
+  url?: T;
+  location?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StackBlock_select".
+ */
+export interface StackBlockSelect<T extends boolean = true> {
+  direction?: T;
+  wrap?: T;
+  items?:
+    | T
+    | {
+        content?: T | ContentBlockSelect<T>;
+        place?: T | PlaceBlockSelect<T>;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ThingsToDoBlock_select".
  */
 export interface ThingsToDoBlockSelect<T extends boolean = true> {
@@ -413,6 +505,16 @@ export interface ThingsToDoBlockSelect<T extends boolean = true> {
   items?: T;
   id?: T;
   blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "place-tag_select".
+ */
+export interface PlaceTagSelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
