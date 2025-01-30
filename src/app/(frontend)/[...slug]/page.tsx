@@ -1,9 +1,16 @@
 import RenderBlock from '@/blocks/RenderBlocks';
+import { staticParams } from '@/blocks/ThingsToDo/staticParams';
 import configPromise from '@payload-config';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getPayload } from 'payload';
 import { cache } from 'react';
+
+const blockParams = {
+  ['card']: () => [],
+  ['content']: () => [],
+  ['things-to-do']: staticParams,
+};
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise });
@@ -15,15 +22,20 @@ export async function generateStaticParams() {
     pagination: false,
     select: {
       slug: true,
+      content: true,
     },
   });
 
   const params = pages.docs
-    ?.filter((doc) => {
-      return doc.slug !== 'home';
-    })
-    .map(({ slug }) => {
-      return { slug };
+    ?.filter(({ slug }) => slug != null)
+    .flatMap(({ slug, content }) => {
+      return [
+        { slug: [slug!] },
+        ...(content?.flatMap(
+          // @ts-expect-error - We know this is a valid block
+          (block) => blockParams[block.blockType]?.(slug, block) ?? [],
+        ) ?? []),
+      ];
     });
 
   return params;
@@ -31,22 +43,22 @@ export async function generateStaticParams() {
 
 type Args = {
   params: Promise<{
-    slug?: string;
+    slug: string[];
   }>;
 };
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { slug = 'home' } = await paramsPromise;
-  const page = await queryPageBySlug({ slug });
+  const { slug } = await paramsPromise;
+  const page = await queryPageBySlug({ slug: slug[0] });
 
   if (!page) {
     notFound();
   }
 
   return (
-    <article className="mx-auto w-full max-w-3xl space-y-6 p-4">
+    <article className="container mx-auto space-y-6 p-4">
       <h2 className="mb-6 text-center text-3xl font-bold">{page.title}</h2>
-      <RenderBlock blocks={page.content} />
+      <RenderBlock blocks={page.content} slug={slug} />
     </article>
   );
 }
