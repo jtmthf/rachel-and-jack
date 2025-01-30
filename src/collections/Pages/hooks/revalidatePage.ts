@@ -6,7 +6,9 @@ import type {
 } from 'payload';
 
 export const revalidatePage: CollectionAfterChangeHook<Page> = ({ doc }) => {
-  revalidatePath(`/${doc?.slug}`);
+  if (doc._status === 'published') {
+    revalidatePath(`/${doc?.slug}`);
+  }
 
   return doc;
 };

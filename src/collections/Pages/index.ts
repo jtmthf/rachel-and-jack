@@ -1,6 +1,7 @@
 import { Content } from '@/blocks/Content/config';
 import { ThingsToDo } from '@/blocks/ThingsToDo/config';
 import { Block, CollectionConfig } from 'payload';
+import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
 const AccordionBlock: Block = {
   slug: 'accordion',
@@ -89,10 +90,10 @@ export const Pages: CollectionConfig = {
       blocks: [CardBlock, Content, ThingsToDo],
     },
   ],
-  // hooks: {
-  //   afterChange: [revalidatePage],
-  //   afterDelete: [revalidateDelete],
-  // },
+  hooks: {
+    afterChange: [revalidatePage],
+    afterDelete: [revalidateDelete],
+  },
   versions: {
     drafts: {
       autosave: true,
