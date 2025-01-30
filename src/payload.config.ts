@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
+import { PlaceTag } from './collections/PlaceTag';
 import { ThingsToDo } from './collections/ThingsToDo';
 import { ThingsToDoCategory } from './collections/ThingsToDoCategory';
 import { Users } from './collections/Users';
@@ -24,7 +25,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Pages, ThingsToDo, ThingsToDoCategory],
+  collections: [Users, Media, Pages, PlaceTag, ThingsToDo, ThingsToDoCategory],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

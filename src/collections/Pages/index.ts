@@ -1,4 +1,6 @@
 import { Content } from '@/blocks/Content/config';
+import { Place } from '@/blocks/Place/config';
+import { Stack } from '@/blocks/Stack/config';
 import { ThingsToDo } from '@/blocks/ThingsToDo/config';
 import { Block, CollectionConfig } from 'payload';
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
@@ -87,7 +89,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'content',
       type: 'blocks',
-      blocks: [CardBlock, Content, ThingsToDo],
+      blocks: [CardBlock, Content, Place, Stack, ThingsToDo],
     },
   ],
   hooks: {

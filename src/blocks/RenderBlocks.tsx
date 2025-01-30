@@ -2,17 +2,23 @@ import {
   AccordionBlock as AccordionBlockProps,
   CardBlock as CardBlockProps,
   ContentBlock as ContentBlockProps,
+  PlaceBlock as PlaceBlockProps,
+  StackBlock as StackBlockProps,
   ThingsToDoBlock as ThingsToDoBlockProps,
 } from '@/payload-types';
 import AccordionBlock from './Accordion/Component';
 import CardBlock from './Card/Component';
 import ContentBlock from './Content/Component';
+import PlaceBlock from './Place/Component';
+import StackBlock from './Stack/Component';
 import ThingsToDoBlock from './ThingsToDo/Component';
 
 const blockComponents = {
   accordion: AccordionBlock,
   card: CardBlock,
   content: ContentBlock,
+  place: PlaceBlock,
+  stack: StackBlock,
   ['things-to-do']: ThingsToDoBlock,
 };
 
@@ -25,6 +31,8 @@ type Props = BaseBlockProps & {
     | AccordionBlockProps
     | CardBlockProps
     | ContentBlockProps
+    | PlaceBlockProps
+    | StackBlockProps
     | ThingsToDoBlockProps
   > | null;
 };
@@ -33,6 +41,8 @@ export default function RenderBlock({ slug, blocks }: Props) {
   return (
     <>
       {blocks?.map((block) => {
+        console.log(block);
+
         const Block = blockComponents[block.blockType];
 
         if (!Block) {
