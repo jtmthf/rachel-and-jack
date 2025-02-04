@@ -7,7 +7,7 @@ type Props = BaseBlockProps & StackBlockProps;
 export default function StackBlock({ slug, direction, wrap, items }: Props) {
   return (
     <div
-      className={cn('flex', {
+      className={cn('flex gap-6', {
         'flex-col': direction === 'vertical',
         'flex-row': direction === 'horizontal',
         'flex-wrap': wrap,

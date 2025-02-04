@@ -27,7 +27,7 @@ export default function PlaceBlock({
   const tags = rawTags?.filter((tag) => typeof tag === 'object') ?? [];
 
   return (
-    <Card className="flex max-w-[400px] flex-col gap-6">
+    <Card className="flex max-w-[400px] flex-col">
       <CardHeader>
         {typeof image === 'object' && image !== null && (
           <Image

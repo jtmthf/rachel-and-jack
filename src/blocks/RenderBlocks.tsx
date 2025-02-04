@@ -41,8 +41,6 @@ export default function RenderBlock({ slug, blocks }: Props) {
   return (
     <>
       {blocks?.map((block) => {
-        console.log(block);
-
         const Block = blockComponents[block.blockType];
 
         if (!Block) {
