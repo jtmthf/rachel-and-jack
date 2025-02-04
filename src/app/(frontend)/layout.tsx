@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 
 const items = [
   { title: 'Our Story', href: '/our-story' },
+  { title: 'Details', href: '/details' },
   { title: 'Things to Do', href: '/things-to-do' },
   { title: 'Dining', href: '/dining' },
   { title: 'FAQ', href: '/faq' },
