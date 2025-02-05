@@ -28,18 +28,10 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
     'things-to-do': ThingsToDoSelect<false> | ThingsToDoSelect<true>;
-    'things-to-do-category':
-      | ThingsToDoCategorySelect<false>
-      | ThingsToDoCategorySelect<true>;
-    'payload-locked-documents':
-      | PayloadLockedDocumentsSelect<false>
-      | PayloadLockedDocumentsSelect<true>;
-    'payload-preferences':
-      | PayloadPreferencesSelect<false>
-      | PayloadPreferencesSelect<true>;
-    'payload-migrations':
-      | PayloadMigrationsSelect<false>
-      | PayloadMigrationsSelect<true>;
+    'things-to-do-category': ThingsToDoCategorySelect<false> | ThingsToDoCategorySelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
+    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
+    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
     defaultIDType: number;
@@ -117,9 +109,7 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?:
-    | (CardBlock | ContentBlock | PlaceBlock | StackBlock | ThingsToDoBlock)[]
-    | null;
+  content?: (CardBlock | ContentBlock | PlaceBlock | StackBlock | ThingsToDoBlock)[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -152,14 +142,7 @@ export interface AccordionBlock {
               [k: string]: unknown;
             }[];
             direction: ('ltr' | 'rtl') | null;
-            format:
-              | 'left'
-              | 'start'
-              | 'center'
-              | 'right'
-              | 'end'
-              | 'justify'
-              | '';
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
             indent: number;
             version: number;
           };
@@ -189,14 +172,7 @@ export interface ContentBlock {
               [k: string]: unknown;
             }[];
             direction: ('ltr' | 'rtl') | null;
-            format:
-              | 'left'
-              | 'start'
-              | 'center'
-              | 'right'
-              | 'end'
-              | 'justify'
-              | '';
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
             indent: number;
             version: number;
           };
@@ -577,6 +553,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Auth {
   [k: string]: unknown;
 }
+
 
 declare module 'payload' {
   export interface GeneratedTypes extends Config {}
