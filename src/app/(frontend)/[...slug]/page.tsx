@@ -1,5 +1,6 @@
 import RenderBlock from '@/blocks/RenderBlocks';
 import { staticParams } from '@/blocks/ThingsToDo/staticParams';
+import { LivePreviewListener } from '@/components/live-preview-listener';
 import configPromise from '@payload-config';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
@@ -48,6 +49,7 @@ type Args = {
 };
 
 export default async function Page({ params: paramsPromise }: Args) {
+  const { isEnabled: draft } = await draftMode();
   const { slug } = await paramsPromise;
   const page = await queryPageBySlug({ slug: slug[0] });
 
@@ -58,6 +60,9 @@ export default async function Page({ params: paramsPromise }: Args) {
   return (
     <article className="container mx-auto space-y-6 p-4">
       <h2 className="mb-6 text-center text-3xl font-bold">{page.title}</h2>
+
+      {draft && <LivePreviewListener />}
+
       <RenderBlock blocks={page.content} slug={slug} />
     </article>
   );
