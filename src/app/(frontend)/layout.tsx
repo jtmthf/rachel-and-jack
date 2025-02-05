@@ -1,6 +1,8 @@
+import { AdminBar } from '@/components/admin-bar';
 import { Navbar } from '@/components/navbar';
 import PageViewed from '@/lib/analytics/page-viewed';
 import type { Metadata } from 'next';
+import { draftMode } from 'next/headers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,15 +19,22 @@ const items = [
   { title: 'FAQ', href: '/faq' },
 ];
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { isEnabled } = await draftMode();
+
   return (
     <html lang="en">
       <body>
         <PageViewed />
+        <AdminBar
+          adminBarProps={{
+            preview: isEnabled,
+          }}
+        />
         <Navbar items={items} />
         {children}
       </body>

@@ -2,6 +2,7 @@ import { Content } from '@/blocks/Content/config';
 import { Place } from '@/blocks/Place/config';
 import { Stack } from '@/blocks/Stack/config';
 import { ThingsToDo } from '@/blocks/ThingsToDo/config';
+import { generatePreviewPath } from '@/lib/generate-preview-path';
 import { Block, CollectionConfig } from 'payload';
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
@@ -73,6 +74,12 @@ export const Pages: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
+    preview: (data, { req }) =>
+      generatePreviewPath({
+        slug: typeof data?.slug === 'string' ? data.slug : '',
+        collection: 'pages',
+        req,
+      }),
   },
   fields: [
     {
