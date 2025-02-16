@@ -15,13 +15,13 @@
   },
   "dependencies": {
     "@aws-sdk/credential-provider-web-identity": "^3.734.0",
-    "@payloadcms/db-vercel-postgres": "^3.20.0",
-    "@payloadcms/live-preview-react": "^3.20.0",
-    "@payloadcms/next": "^3.20.0",
-    "@payloadcms/payload-cloud": "^3.20.0",
-    "@payloadcms/richtext-lexical": "^3.20.0",
-    "@payloadcms/storage-vercel-blob": "^3.20.0",
-    "@payloadcms/ui": "^3.20.0",
+    "@payloadcms/db-vercel-postgres": "^3.23.0",
+    "@payloadcms/live-preview-react": "^3.23.0",
+    "@payloadcms/next": "^3.23.0",
+    "@payloadcms/payload-cloud": "^3.23.0",
+    "@payloadcms/richtext-lexical": "^3.23.0",
+    "@payloadcms/storage-vercel-blob": "^3.23.0",
+    "@payloadcms/ui": "^3.23.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-dialog": "^1.1.5",
     "@radix-ui/react-scroll-area": "^1.2.2",
@@ -37,7 +37,7 @@
     "graphql": "^16.10.0",
     "lucide-react": "^0.474.0",
     "next": "15.1.6",
-    "payload": "^3.20.0",
+    "payload": "^3.23.0",
     "payload-admin-bar": "^1.0.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -71,5 +71,15 @@
   },
   "engines": {
     "node": "22.x"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19",
+        "@types/react": "19",
+        "@types/react-dom": "19"
+      }
+    }
   }
 }
