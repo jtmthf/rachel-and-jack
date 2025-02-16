@@ -3,11 +3,11 @@ import { MapPin } from 'lucide-react';
 
 type Props = {
   name: string;
-  date: string;
+  location: string;
   children: React.ReactNode;
 };
 
-export function Place({ name, date, children }: Props) {
+export function Place({ name, location, children }: Props) {
   return (
     <div
       className={`flex flex-row-reverse items-center [&:not(:last-child)]:mb-12`}
@@ -17,7 +17,7 @@ export function Place({ name, date, children }: Props) {
         <CardContent className="p-6">
           <h3 className="mb-2 text-xl font-semibold">{name}</h3>
           <p className="text-md mb-2 text-muted-foreground">
-            <MapPin size="1.25em" className="inline align-top" /> {date}
+            <MapPin size="1.25em" className="inline align-top" /> {location}
           </p>
           {children}
         </CardContent>
