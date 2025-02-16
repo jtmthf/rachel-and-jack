@@ -1,3 +1,4 @@
+import RichText from '@/components/rich-text';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -7,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { PlaceBlock as PlaceBlockProps } from '@/payload-types';
-import { RichText } from '@payloadcms/richtext-lexical/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BaseBlockProps } from '../RenderBlocks';

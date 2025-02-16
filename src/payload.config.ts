@@ -1,7 +1,6 @@
 // storage-adapter-import-placeholder
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres';
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
-import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
 import path from 'path';
 import { buildConfig } from 'payload';
@@ -14,6 +13,7 @@ import { PlaceTag } from './collections/PlaceTag';
 import { ThingsToDo } from './collections/ThingsToDo';
 import { ThingsToDoCategory } from './collections/ThingsToDoCategory';
 import { Users } from './collections/Users';
+import { defaultLexical } from './fields/default-lexical';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -26,7 +26,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Pages, PlaceTag, ThingsToDo, ThingsToDoCategory],
-  editor: lexicalEditor(),
+  editor: defaultLexical,
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

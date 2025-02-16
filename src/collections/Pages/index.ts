@@ -3,6 +3,12 @@ import { Place } from '@/blocks/Place/config';
 import { Stack } from '@/blocks/Stack/config';
 import { ThingsToDo } from '@/blocks/ThingsToDo/config';
 import { generatePreviewPath } from '@/lib/generate-preview-path';
+import {
+  FixedToolbarFeature,
+  HeadingFeature,
+  InlineToolbarFeature,
+  lexicalEditor,
+} from '@payloadcms/richtext-lexical';
 import { Block, CollectionConfig } from 'payload';
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
@@ -21,6 +27,16 @@ const AccordionBlock: Block = {
         {
           type: 'richText',
           name: 'content',
+          editor: lexicalEditor({
+            features: ({ rootFeatures }) => {
+              return [
+                ...rootFeatures,
+                HeadingFeature({ enabledHeadingSizes: ['h2', 'h3', 'h4'] }),
+                FixedToolbarFeature(),
+                InlineToolbarFeature(),
+              ];
+            },
+          }),
         },
       ],
     },

@@ -1,6 +1,6 @@
+import RichText from '@/components/rich-text';
 import { cn } from '@/lib/utils';
 import type { ContentBlock as ContentBlockProps } from '@/payload-types';
-import { RichText } from '@payloadcms/richtext-lexical/react';
 
 export default function ContentBlock({ columns }: ContentBlockProps) {
   return (
@@ -22,7 +22,7 @@ export default function ContentBlock({ columns }: ContentBlockProps) {
                 })}
                 key={col.id}
               >
-                {richText && <RichText data={richText} />}
+                {richText && <RichText enableGutter={false} data={richText} />}
               </div>
             );
           })}

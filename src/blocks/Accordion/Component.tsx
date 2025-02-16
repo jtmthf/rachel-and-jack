@@ -1,3 +1,4 @@
+import RichText from '@/components/rich-text';
 import {
   Accordion,
   AccordionContent,
@@ -5,7 +6,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import type { AccordionBlock as AccordionBlockProps } from '@/payload-types';
-import { RichText } from '@payloadcms/richtext-lexical/react';
 
 export default function AccordionBlock({ items }: AccordionBlockProps) {
   return (
