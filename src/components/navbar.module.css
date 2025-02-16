@@ -3,19 +3,19 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--background);
+  background: white;
 }
 
 @supports (backdrop-filter: blur(16px)) {
   .header {
-    background: var(--background);
+    background: white;
   }
 
   .backdrop {
     position: absolute;
     inset: 0;
     backdrop-filter: blur(16px);
-    background: linear-gradient(to bottom, var(--background), transparent 50%);
+    background: linear-gradient(to bottom, white, transparent 50%);
     pointer-events: none;
   }
 

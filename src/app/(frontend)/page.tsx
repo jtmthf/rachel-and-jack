@@ -11,7 +11,7 @@ const inter = Inter({
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-orange-50 px-4 py-16 sm:px-8 lg:px-16">
+    <main className="min-h-screen px-4 py-16 sm:px-8 lg:px-16">
       <div className="mb-16 text-center">
         <h1 className={cn('text-6xl sm:text-8xl', inter.className)}>
           Rachel & Jack

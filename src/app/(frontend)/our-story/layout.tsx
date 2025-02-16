@@ -4,7 +4,7 @@ type Props = {
 
 export default function OurStory({ children }: Props) {
   return (
-    <section className="bg-gray-50 py-12">
+    <section className="py-12">
       <div className="mx-auto max-w-[48rem] px-4">
         <h2 className="mb-12 text-center text-4xl font-bold">Our Story</h2>
         <p className="mb-2 ml-2 text-xl font-semibold">October 14th, 2020</p>
