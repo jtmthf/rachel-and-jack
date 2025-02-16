@@ -235,6 +235,7 @@ export interface ContentBlock {
         id?: string | null;
       }[]
     | null;
+  separator?: boolean | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
@@ -493,6 +494,7 @@ export interface ContentBlockSelect<T extends boolean = true> {
         richText?: T;
         id?: T;
       };
+  separator?: T;
   id?: T;
   blockName?: T;
 }

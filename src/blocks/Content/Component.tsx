@@ -1,29 +1,41 @@
 import RichText from '@/components/rich-text';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { ContentBlock as ContentBlockProps } from '@/payload-types';
+import { Fragment } from 'react';
 
-export default function ContentBlock({ columns }: ContentBlockProps) {
+export default function ContentBlock({
+  columns,
+  separator,
+}: ContentBlockProps) {
   return (
     <div className="container my-16">
-      <div className="grid grid-cols-4 gap-x-16 gap-y-8 lg:grid-cols-12">
+      <div className="flex flex-wrap gap-x-16 gap-y-8 md:flex-nowrap">
         {columns &&
           columns.length > 0 &&
-          columns.map((col) => {
+          columns.map((col, index) => {
             const { richText, size } = col;
 
             return (
-              <div
-                className={cn('col-span-4', {
-                  'md:col-span-2': size !== 'full',
-                  'lg:col-span-4': size === 'oneThird',
-                  'lg:col-span-6': size === 'half',
-                  'lg:col-span-8': size === 'twoThirds',
-                  'lg:col-span-12': size === 'full',
-                })}
-                key={col.id}
-              >
-                {richText && <RichText enableGutter={false} data={richText} />}
-              </div>
+              <Fragment key={col.id}>
+                <div
+                  className={cn('flex-auto', {
+                    'md:basis-1/2': size !== 'full',
+                    'lg:basis-1/3': size === 'oneThird',
+                    'lg:basis-1/2': size === 'half',
+                    'lg:basis-2/3': size === 'twoThirds',
+                    'lg:basis-full': size === 'full',
+                  })}
+                >
+                  {richText && <RichText enableGutter={true} data={richText} />}
+                </div>
+                {separator && index < columns.length - 1 && (
+                  <Separator
+                    className="hidden h-auto md:block"
+                    orientation="vertical"
+                  />
+                )}
+              </Fragment>
             );
           })}
       </div>

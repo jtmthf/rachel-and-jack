@@ -14,7 +14,9 @@ export default function AccordionBlock({ items }: AccordionBlockProps) {
         <AccordionItem key={item.id} value={`item-${item.id}`}>
           <AccordionTrigger>{item.title}</AccordionTrigger>
           <AccordionContent>
-            {item.content && <RichText data={item.content} />}
+            {item.content && (
+              <RichText data={item.content} enableGutter={false} />
+            )}
           </AccordionContent>
         </AccordionItem>
       ))}

@@ -10,7 +10,7 @@ const columnFields: Field[] = [
   {
     name: 'size',
     type: 'select',
-    defaultValue: 'oneThird',
+    defaultValue: 'full',
     options: [
       {
         label: 'One Third',
@@ -58,6 +58,11 @@ export const Content: Block = {
         initCollapsed: true,
       },
       fields: columnFields,
+    },
+    {
+      name: 'separator',
+      type: 'checkbox',
+      defaultValue: false,
     },
   ],
 };
