@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 const items = [
   { title: 'Our Story', href: '/our-story' },
   { title: 'Details', href: '/details' },
-  { title: 'Things to Do', href: '/things-to-do' },
+  { title: 'Things To Do', href: '/things-to-do' },
   { title: 'Dining', href: '/dining' },
-  { title: 'FAQ', href: '/faq' },
+  { title: 'Q&A', href: '/faq' },
 ];
 
 export default async function RootLayout({

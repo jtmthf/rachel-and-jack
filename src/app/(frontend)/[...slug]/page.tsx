@@ -1,11 +1,19 @@
 import RenderBlock from '@/blocks/RenderBlocks';
 import { staticParams } from '@/blocks/ThingsToDo/staticParams';
 import { LivePreviewListener } from '@/components/live-preview-listener';
+import { cn } from '@/lib/utils';
 import configPromise from '@payload-config';
+import { Imperial_Script } from 'next/font/google';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getPayload } from 'payload';
 import { cache } from 'react';
+
+const imperialScript = Imperial_Script({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 const blockParams = {
   ['card']: () => [],
@@ -59,7 +67,9 @@ export default async function Page({ params: paramsPromise }: Args) {
 
   return (
     <article className="container mx-auto space-y-6 p-4">
-      <h2 className="mb-6 text-center text-3xl font-bold">{page.title}</h2>
+      <h2 className={cn('mb-6 text-center text-6xl', imperialScript.className)}>
+        {page.title}
+      </h2>
 
       {draft && <LivePreviewListener />}
 

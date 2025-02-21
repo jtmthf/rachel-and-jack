@@ -1,6 +1,13 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { Baskervville_SC } from 'next/font/google';
+
+const baskerville = Baskervville_SC({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -8,10 +15,7 @@ const Card = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      'rounded-xl border bg-card text-card-foreground shadow',
-      className,
-    )}
+    className={cn('border bg-card text-card-foreground shadow', className)}
     {...props}
   />
 ));
@@ -35,7 +39,11 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('font-semibold leading-none tracking-tight', className)}
+    className={cn(
+      'text-xl leading-none tracking-wide',
+      baskerville.className,
+      className,
+    )}
     {...props}
   />
 ));

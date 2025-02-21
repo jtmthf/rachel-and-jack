@@ -56,11 +56,11 @@ export default function PlaceBlock({
           </p>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex-wrap gap-4">
         {tags.map(
           (tag) =>
             typeof tag === 'object' && (
-              <Button key={tag.id} variant="secondary" className="mr-2" asChild>
+              <Button key={tag.id} variant="secondary" asChild>
                 <Link href={`/${page}/${tag.slug}`}>{tag.label}</Link>
               </Button>
             ),

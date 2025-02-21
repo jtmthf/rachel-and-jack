@@ -3,19 +3,23 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: white;
+  background: theme('colors.card.DEFAULT');
 }
 
 @supports (backdrop-filter: blur(16px)) {
   .header {
-    background: white;
+    background: theme('colors.card.DEFAULT');
   }
 
   .backdrop {
     position: absolute;
     inset: 0;
     backdrop-filter: blur(16px);
-    background: linear-gradient(to bottom, white, transparent 50%);
+    background: linear-gradient(
+      to bottom,
+      theme('colors.card.DEFAULT'),
+      transparent 50%
+    );
     pointer-events: none;
   }
 

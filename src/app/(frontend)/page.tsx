@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
-import { Imperial_Script as Inter } from 'next/font/google';
+import { Imperial_Script } from 'next/font/google';
 import Image from 'next/image';
 import engagement from './engagement.png';
 
-const inter = Inter({
+const imperialScript = Imperial_Script({
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <main className="min-h-screen px-4 py-16 sm:px-8 lg:px-16">
       <div className="mb-16 text-center">
-        <h1 className={cn('text-6xl sm:text-8xl', inter.className)}>
+        <h1 className={cn('text-6xl sm:text-8xl', imperialScript.className)}>
           Rachel & Jack
           <br />
           are getting married!
