@@ -22,7 +22,7 @@ export function MessageForm() {
         name="text"
         type="text"
         placeholder="Type your message..."
-        className="flex-grow"
+        className="grow"
       />
       <Button type="submit">Post</Button>
     </form>

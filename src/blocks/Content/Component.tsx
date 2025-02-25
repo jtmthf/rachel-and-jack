@@ -9,7 +9,7 @@ export default function ContentBlock({
   separator,
 }: ContentBlockProps) {
   return (
-    <div className="container my-16">
+    <div className="container">
       <div className="flex flex-wrap gap-x-16 gap-y-8 md:flex-nowrap">
         {columns &&
           columns.length > 0 &&

@@ -61,7 +61,7 @@ export function Navbar({ items }: Props) {
                   key={item.title}
                   href={item.href}
                   className={cn(
-                    'text-2xl font-light tracking-wider transition-colors hover:text-primary',
+                    'hover:text-primary text-2xl font-light tracking-wider transition-colors',
                     baskerville.className,
                   )}
                 >
@@ -82,7 +82,7 @@ export function Navbar({ items }: Props) {
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
+                  <Menu className="size-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
@@ -99,7 +99,7 @@ export function Navbar({ items }: Props) {
                       key={item.title}
                       href={item.href}
                       className={cn(
-                        'text-xl tracking-wider transition-colors hover:text-primary',
+                        'hover:text-primary text-xl tracking-wider transition-colors',
                         baskerville.className,
                       )}
                       onClick={() => setIsOpen(false)}
