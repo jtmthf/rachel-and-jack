@@ -163,7 +163,7 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?: (CardBlock | ContentBlock | PlaceBlock | StackBlock | ThingsToDoBlock)[] | null;
+  content?: (CardBlock | ContentBlock | PlaceBlock | ScheduleBlock | StackBlock | ThingsToDoBlock)[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -279,6 +279,41 @@ export interface PlaceTag {
   slug: string;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ScheduleBlock".
+ */
+export interface ScheduleBlock {
+  events?:
+    | {
+        title: string;
+        date: string;
+        time: string;
+        description: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        location: string;
+        attire: string;
+        draft?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'schedule';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -446,6 +481,7 @@ export interface PagesSelect<T extends boolean = true> {
         card?: T | CardBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
         place?: T | PlaceBlockSelect<T>;
+        schedule?: T | ScheduleBlockSelect<T>;
         stack?: T | StackBlockSelect<T>;
         'things-to-do'?: T | ThingsToDoBlockSelect<T>;
       };
@@ -509,6 +545,26 @@ export interface PlaceBlockSelect<T extends boolean = true> {
   tags?: T;
   url?: T;
   location?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ScheduleBlock_select".
+ */
+export interface ScheduleBlockSelect<T extends boolean = true> {
+  events?:
+    | T
+    | {
+        title?: T;
+        date?: T;
+        time?: T;
+        description?: T;
+        location?: T;
+        attire?: T;
+        draft?: T;
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }

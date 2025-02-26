@@ -1,5 +1,6 @@
 import { Content } from '@/blocks/Content/config';
 import { Place } from '@/blocks/Place/config';
+import { Schedule } from '@/blocks/Schedule/config';
 import { Stack } from '@/blocks/Stack/config';
 import { ThingsToDo } from '@/blocks/ThingsToDo/config';
 import { generatePreviewPath } from '@/lib/generate-preview-path';
@@ -123,7 +124,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'content',
       type: 'blocks',
-      blocks: [CardBlock, Content, Place, Stack, ThingsToDo],
+      blocks: [CardBlock, Content, Place, Schedule, Stack, ThingsToDo],
     },
   ],
   hooks: {
