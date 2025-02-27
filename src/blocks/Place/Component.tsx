@@ -35,7 +35,7 @@ export default function PlaceBlock({
             alt={image.alt}
             width={300}
             height={200}
-            className="h-48 w-full rounded-t-lg object-cover"
+            className="h-48 w-full object-cover"
           />
         )}
         <CardTitle className="mb-2">{title}</CardTitle>

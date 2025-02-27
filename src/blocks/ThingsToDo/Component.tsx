@@ -72,7 +72,7 @@ export default function ThingsToDoBlock({
                   alt={activity.title}
                   width={300}
                   height={200}
-                  className="h-48 w-full rounded-t-lg object-cover"
+                  className="h-48 w-full object-cover"
                 />
               )}
             </CardHeader>
