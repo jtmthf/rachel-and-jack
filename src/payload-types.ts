@@ -71,6 +71,9 @@ export interface Config {
     media: Media;
     pages: Page;
     'place-tag': PlaceTag;
+    'registry-category': RegistryCategory;
+    'registry-item': RegistryItem;
+    'registry-store': RegistryStore;
     'things-to-do': ThingsToDo;
     'things-to-do-category': ThingsToDoCategory;
     'payload-locked-documents': PayloadLockedDocument;
@@ -83,6 +86,9 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
+    'registry-category': RegistryCategorySelect<false> | RegistryCategorySelect<true>;
+    'registry-item': RegistryItemSelect<false> | RegistryItemSelect<true>;
+    'registry-store': RegistryStoreSelect<false> | RegistryStoreSelect<true>;
     'things-to-do': ThingsToDoSelect<false> | ThingsToDoSelect<true>;
     'things-to-do-category': ThingsToDoCategorySelect<false> | ThingsToDoCategorySelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -366,6 +372,60 @@ export interface ThingsToDo {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-category".
+ */
+export interface RegistryCategory {
+  id: number;
+  label: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-item".
+ */
+export interface RegistryItem {
+  id: number;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  category?: (number | RegistryCategory)[] | null;
+  store?: (number | null) | RegistryStore;
+  price: number;
+  url: string;
+  quantityRequested?: number | null;
+  image: number | Media;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-store".
+ */
+export interface RegistryStore {
+  id: number;
+  label: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -386,6 +446,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'place-tag';
         value: number | PlaceTag;
+      } | null)
+    | ({
+        relationTo: 'registry-category';
+        value: number | RegistryCategory;
+      } | null)
+    | ({
+        relationTo: 'registry-item';
+        value: number | RegistryItem;
+      } | null)
+    | ({
+        relationTo: 'registry-store';
+        value: number | RegistryStore;
       } | null)
     | ({
         relationTo: 'things-to-do';
@@ -601,6 +673,43 @@ export interface ThingsToDoBlockSelect<T extends boolean = true> {
  * via the `definition` "place-tag_select".
  */
 export interface PlaceTagSelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-category_select".
+ */
+export interface RegistryCategorySelect<T extends boolean = true> {
+  label?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-item_select".
+ */
+export interface RegistryItemSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  category?: T;
+  store?: T;
+  price?: T;
+  url?: T;
+  quantityRequested?: T;
+  image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-store_select".
+ */
+export interface RegistryStoreSelect<T extends boolean = true> {
   label?: T;
   slug?: T;
   updatedAt?: T;

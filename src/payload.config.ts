@@ -10,6 +10,9 @@ import { fileURLToPath } from 'url';
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
 import { PlaceTag } from './collections/PlaceTag';
+import { RegistryCategory } from './collections/Registry/RegistryCategory';
+import { RegistryItem } from './collections/Registry/RegistryItem';
+import { RegistryStore } from './collections/Registry/RegistryStore';
 import { ThingsToDo } from './collections/ThingsToDo';
 import { ThingsToDoCategory } from './collections/ThingsToDoCategory';
 import { Users } from './collections/Users';
@@ -25,7 +28,17 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Pages, PlaceTag, ThingsToDo, ThingsToDoCategory],
+  collections: [
+    Users,
+    Media,
+    Pages,
+    PlaceTag,
+    RegistryCategory,
+    RegistryItem,
+    RegistryStore,
+    ThingsToDo,
+    ThingsToDoCategory,
+  ],
   editor: defaultLexical,
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
