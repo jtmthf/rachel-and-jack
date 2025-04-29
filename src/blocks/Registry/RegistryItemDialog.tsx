@@ -175,6 +175,7 @@ function AlreadyPurchasedView({
     <>
       <DialogHeader>
         <Button
+          type="button"
           variant="ghost"
           className="self-start p-0 font-bold"
           onClick={() => setViewState('initial')}
@@ -224,6 +225,7 @@ function StoreView({ item, setViewState }: ViewStateProps) {
     <>
       <DialogHeader>
         <Button
+          type="button"
           variant="ghost"
           className="self-start p-0 font-bold"
           onClick={() => setViewState('already-purchased')}
@@ -303,6 +305,7 @@ function ContactInfoView({ setViewState }: ViewStateProps) {
     <>
       <DialogHeader>
         <Button
+          type="button"
           variant="ghost"
           className="self-start p-0 font-bold"
           onClick={() => setViewState('store')}
@@ -348,7 +351,15 @@ function SubmittedView() {
     <>
       <DialogHeader>
         <DialogTitle>Thank you!</DialogTitle>
-        <DialogDescription>Your purchase has been submitted.</DialogDescription>
+        <DialogDescription>
+          <br />
+          Your purchase has been recorded! We’re so grateful for your support as
+          we start this exciting new chapter together. Your generosity truly
+          means the world to us. We can't wait to celebrate with you soon!
+          <br />
+          <br />
+          Love, Rachel and Jack
+        </DialogDescription>
       </DialogHeader>
     </>
   );

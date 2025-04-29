@@ -57,8 +57,8 @@ async function RegistryItemCard({ item }: RegistryItemCardProps) {
             src={item.image.url!}
             alt={item.title}
             width={300}
-            height={200}
-            className="h-48 w-full object-cover"
+            height={300}
+            className="aspect-square w-full object-cover"
           />
         )}
       </CardHeader>
