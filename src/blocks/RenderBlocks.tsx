@@ -3,6 +3,7 @@ import {
   CardBlock as CardBlockProps,
   ContentBlock as ContentBlockProps,
   PlaceBlock as PlaceBlockProps,
+  RegistryBlock as RegistryBlockProps,
   ScheduleBlock as ScheduleBlockProps,
   StackBlock as StackBlockProps,
   ThingsToDoBlock as ThingsToDoBlockProps,
@@ -11,6 +12,7 @@ import AccordionBlock from './Accordion/Component';
 import CardBlock from './Card/Component';
 import ContentBlock from './Content/Component';
 import PlaceBlock from './Place/Component';
+import RegistryBlock from './Registry/Component';
 import ScheduleBlock from './Schedule/Component';
 import StackBlock from './Stack/Component';
 import ThingsToDoBlock from './ThingsToDo/Component';
@@ -20,6 +22,7 @@ const blockComponents = {
   card: CardBlock,
   content: ContentBlock,
   place: PlaceBlock,
+  registry: RegistryBlock,
   schedule: ScheduleBlock,
   stack: StackBlock,
   ['things-to-do']: ThingsToDoBlock,
@@ -35,6 +38,7 @@ type Props = BaseBlockProps & {
     | CardBlockProps
     | ContentBlockProps
     | PlaceBlockProps
+    | RegistryBlockProps
     | ScheduleBlockProps
     | StackBlockProps
     | ThingsToDoBlockProps

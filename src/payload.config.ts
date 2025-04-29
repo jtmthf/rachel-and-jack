@@ -12,6 +12,7 @@ import { Pages } from './collections/Pages';
 import { PlaceTag } from './collections/PlaceTag';
 import { RegistryCategory } from './collections/Registry/RegistryCategory';
 import { RegistryItem } from './collections/Registry/RegistryItem';
+import { RegistryPurchase } from './collections/Registry/RegistryPurchase';
 import { RegistryStore } from './collections/Registry/RegistryStore';
 import { ThingsToDo } from './collections/ThingsToDo';
 import { ThingsToDoCategory } from './collections/ThingsToDoCategory';
@@ -35,6 +36,7 @@ export default buildConfig({
     PlaceTag,
     RegistryCategory,
     RegistryItem,
+    RegistryPurchase,
     RegistryStore,
     ThingsToDo,
     ThingsToDoCategory,

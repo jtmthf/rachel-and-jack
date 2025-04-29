@@ -17,6 +17,7 @@ const items = [
   { title: 'Things To Do', href: '/things-to-do' },
   { title: 'Dining', href: '/dining' },
   { title: 'Q&A', href: '/faq' },
+  { title: 'Registry', href: '/registry' },
 ];
 
 export default async function RootLayout({

@@ -73,6 +73,7 @@ export interface Config {
     'place-tag': PlaceTag;
     'registry-category': RegistryCategory;
     'registry-item': RegistryItem;
+    'registry-purchase': RegistryPurchase;
     'registry-store': RegistryStore;
     'things-to-do': ThingsToDo;
     'things-to-do-category': ThingsToDoCategory;
@@ -80,7 +81,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    'registry-item': {
+      registryPurchases: 'registry-purchase';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -88,6 +93,7 @@ export interface Config {
     'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
     'registry-category': RegistryCategorySelect<false> | RegistryCategorySelect<true>;
     'registry-item': RegistryItemSelect<false> | RegistryItemSelect<true>;
+    'registry-purchase': RegistryPurchaseSelect<false> | RegistryPurchaseSelect<true>;
     'registry-store': RegistryStoreSelect<false> | RegistryStoreSelect<true>;
     'things-to-do': ThingsToDoSelect<false> | ThingsToDoSelect<true>;
     'things-to-do-category': ThingsToDoCategorySelect<false> | ThingsToDoCategorySelect<true>;
@@ -171,7 +177,9 @@ export interface Page {
   id: number;
   title: string;
   slug?: string | null;
-  content?: (CardBlock | ContentBlock | PlaceBlock | ScheduleBlock | StackBlock | ThingsToDoBlock)[] | null;
+  content?:
+    | (CardBlock | ContentBlock | PlaceBlock | RegistryBlock | ScheduleBlock | StackBlock | ThingsToDoBlock)[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -287,6 +295,15 @@ export interface PlaceTag {
   slug: string;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RegistryBlock".
+ */
+export interface RegistryBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'registry';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -409,6 +426,11 @@ export interface RegistryItem {
   url: string;
   quantityRequested?: number | null;
   image: number | Media;
+  registryPurchases?: {
+    docs?: (number | RegistryPurchase)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -421,6 +443,21 @@ export interface RegistryStore {
   id: number;
   label: string;
   slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-purchase".
+ */
+export interface RegistryPurchase {
+  id: number;
+  registryItem: number | RegistryItem;
+  quantity: number;
+  purchasedAt: 'online' | 'in-store';
+  orderNumber?: string | null;
+  purchaserName: string;
+  purchaserEmail: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -454,6 +491,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'registry-item';
         value: number | RegistryItem;
+      } | null)
+    | ({
+        relationTo: 'registry-purchase';
+        value: number | RegistryPurchase;
       } | null)
     | ({
         relationTo: 'registry-store';
@@ -555,6 +596,7 @@ export interface PagesSelect<T extends boolean = true> {
         card?: T | CardBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
         place?: T | PlaceBlockSelect<T>;
+        registry?: T | RegistryBlockSelect<T>;
         schedule?: T | ScheduleBlockSelect<T>;
         stack?: T | StackBlockSelect<T>;
         'things-to-do'?: T | ThingsToDoBlockSelect<T>;
@@ -619,6 +661,14 @@ export interface PlaceBlockSelect<T extends boolean = true> {
   tags?: T;
   url?: T;
   location?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RegistryBlock_select".
+ */
+export interface RegistryBlockSelect<T extends boolean = true> {
   id?: T;
   blockName?: T;
 }
@@ -701,9 +751,24 @@ export interface RegistryItemSelect<T extends boolean = true> {
   url?: T;
   quantityRequested?: T;
   image?: T;
+  registryPurchases?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-purchase_select".
+ */
+export interface RegistryPurchaseSelect<T extends boolean = true> {
+  registryItem?: T;
+  quantity?: T;
+  purchasedAt?: T;
+  orderNumber?: T;
+  purchaserName?: T;
+  purchaserEmail?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
