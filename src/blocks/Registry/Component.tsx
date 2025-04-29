@@ -15,7 +15,7 @@ import {
   RegistryItem,
 } from '@/payload-types';
 import configPromise from '@payload-config';
-import { eq, sum } from '@payloadcms/db-vercel-postgres/drizzle';
+import { eq, sql } from '@payloadcms/db-vercel-postgres/drizzle';
 import { draftMode } from 'next/headers';
 import Image from 'next/image';
 import { getPayload } from 'payload';
@@ -132,7 +132,7 @@ const countRegistryPurchases = cache(async (itemId: number) => {
 
   const [{ purchasedCount }] = await payload.db.drizzle
     .select({
-      purchasedCount: sum(registry_purchase.quantity).mapWith(Number),
+      purchasedCount: sql`coalesce(sum(${registry_purchase.quantity}), 0)`.mapWith(Number),
     })
     .from(registry_purchase)
     .where(eq(registry_purchase.registryItem, itemId));
