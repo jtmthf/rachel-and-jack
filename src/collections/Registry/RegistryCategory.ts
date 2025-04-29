@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload';
+import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
 export const RegistryCategory: CollectionConfig = {
   slug: 'registry-category',
@@ -22,4 +23,8 @@ export const RegistryCategory: CollectionConfig = {
       index: true,
     },
   ],
+  hooks: {
+    afterChange: [revalidatePage],
+    afterDelete: [revalidateDelete],
+  },
 };

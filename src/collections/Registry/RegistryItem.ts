@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload';
+import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
 export const RegistryItem: CollectionConfig = {
   slug: 'registry-item',
@@ -74,7 +75,17 @@ export const RegistryItem: CollectionConfig = {
       relationTo: 'media',
       required: true,
     },
+    {
+      name: 'registryPurchases',
+      type: 'join',
+      collection: 'registry-purchase',
+      on: 'registryItem',
+    },
   ],
+  hooks: {
+    afterChange: [revalidatePage],
+    afterDelete: [revalidateDelete],
+  },
   versions: {
     drafts: {
       autosave: true,

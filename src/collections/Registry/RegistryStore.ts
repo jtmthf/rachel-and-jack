@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload';
+import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 
 export const RegistryStore: CollectionConfig = {
   slug: 'registry-store',
@@ -22,4 +23,8 @@ export const RegistryStore: CollectionConfig = {
       index: true,
     },
   ],
+  hooks: {
+    afterChange: [revalidatePage],
+    afterDelete: [revalidateDelete],
+  },
 };
