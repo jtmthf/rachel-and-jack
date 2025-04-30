@@ -39,8 +39,11 @@ type ViewState =
   | 'purchased'
   | 'submitted';
 
+type Flow = 'new-purchase' | 'existing-purchase';
+
 export function RegistryItemDialog({ item, purchasedCount }: Props) {
   const [viewState, setViewState] = useState<ViewState>('initial');
+  const [flow, setFlow] = useState<Flow>('new-purchase');
 
   return (
     <DialogContent className="flex flex-col justify-evenly gap-8 p-8 sm:grid sm:max-w-xl sm:grid-cols-2 md:max-w-2xl lg:max-w-3xl">
@@ -61,6 +64,8 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
           <InitialView
             purchasedCount={purchasedCount}
             item={item}
+            flow={flow}
+            setFlow={setFlow}
             setViewState={setViewState}
           />
         </div>
@@ -73,6 +78,8 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
           <AlreadyPurchasedView
             purchasedCount={purchasedCount}
             item={item}
+            flow={flow}
+            setFlow={setFlow}
             setViewState={setViewState}
           />
         </div>
@@ -80,6 +87,8 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
           <StoreView
             purchasedCount={purchasedCount}
             item={item}
+            flow={flow}
+            setFlow={setFlow}
             setViewState={setViewState}
           />
         </div>
@@ -89,6 +98,8 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
           <ContactInfoView
             purchasedCount={purchasedCount}
             item={item}
+            flow={flow}
+            setFlow={setFlow}
             setViewState={setViewState}
           />
         </div>
@@ -105,10 +116,17 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
 type ViewStateProps = {
   item: RegistryItem;
   purchasedCount: number;
+  flow: Flow;
   setViewState: React.Dispatch<React.SetStateAction<ViewState>>;
+  setFlow: React.Dispatch<React.SetStateAction<Flow>>;
 };
 
-function InitialView({ item, purchasedCount, setViewState }: ViewStateProps) {
+function InitialView({
+  item,
+  purchasedCount,
+  setFlow,
+  setViewState,
+}: ViewStateProps) {
   const formatPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -142,22 +160,29 @@ function InitialView({ item, purchasedCount, setViewState }: ViewStateProps) {
             />
           </>
         )}
-        <Button asChild className="mt-auto w-full">
-          <a href={item.url} target="_blank" rel="noopener noreferrer">
-            Purchase This Gift
-            {typeof item.store === 'object' && (
-              <span className="text-sm font-semibold">
-                From {item.store?.label}
-              </span>
-            )}
-            <ExternalLink />
-          </a>
+        <Button
+          type="button"
+          className="mt-auto w-full"
+          onClick={() => {
+            setViewState('already-purchased');
+            setFlow('new-purchase');
+          }}
+        >
+          Purchase This Gift
+          {typeof item.store === 'object' && (
+            <span className="text-sm font-semibold">
+              From {item.store?.label}
+            </span>
+          )}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="mt-2 w-full"
-          onClick={() => setViewState('already-purchased')}
+          onClick={() => {
+            setViewState('already-purchased');
+            setFlow('existing-purchase');
+          }}
         >
           I Already Purchased This Gift
         </Button>
@@ -168,6 +193,7 @@ function InitialView({ item, purchasedCount, setViewState }: ViewStateProps) {
 
 function AlreadyPurchasedView({
   item,
+  flow,
   setViewState,
   purchasedCount,
 }: ViewStateProps) {
@@ -183,8 +209,19 @@ function AlreadyPurchasedView({
           <ArrowLeft />
           Back
         </Button>
-        <DialogTitle>Great, let’s update their registry!</DialogTitle>
-        <DialogDescription>How many of these did you buy?</DialogDescription>
+        <DialogTitle>{item.title}</DialogTitle>
+        {flow === 'new-purchase' && (
+          <Button variant="outline" asChild className="my-4 w-full">
+            <a href={item.url} target="_blank" rel="noopener noreferrer">
+              View Gift
+              {typeof item.store === 'object' && <> On {item.store?.label}</>}
+              <ExternalLink />
+            </a>
+          </Button>
+        )}
+        <DialogDescription>
+          Let’s update their registry! How many of these did you buy?
+        </DialogDescription>
         <div className="my-4">
           I bought
           <Select name="quantity" defaultValue="1">
@@ -207,7 +244,7 @@ function AlreadyPurchasedView({
       <Button
         type="button"
         onClick={() => setViewState('store')}
-        className="mt-auto w-full"
+        className="my-4 w-full"
       >
         Continue
       </Button>
@@ -323,6 +360,7 @@ function ContactInfoView({ setViewState }: ViewStateProps) {
             name="purchaserName"
             type="text"
             className="mb-2 w-full"
+            required
           />
         </div>
         <div className="col-span-2 flex flex-col gap-2">

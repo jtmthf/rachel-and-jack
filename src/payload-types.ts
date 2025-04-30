@@ -457,7 +457,7 @@ export interface RegistryPurchase {
   purchasedAt: 'online' | 'in-store';
   orderNumber?: string | null;
   purchaserName: string;
-  purchaserEmail: string;
+  purchaserEmail?: string | null;
   updatedAt: string;
   createdAt: string;
 }

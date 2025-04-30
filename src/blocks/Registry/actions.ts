@@ -36,7 +36,7 @@ const validate = ajv.compile(
     purchasedAt: Type.Union([Type.Literal('online'), Type.Literal('in-store')]),
     orderNumber: Type.Optional(Type.String()),
     purchaserName: Type.String(),
-    purchaserEmail: Type.String(),
+    purchaserEmail: Type.Optional(Type.String()),
   }),
 );
 

@@ -50,7 +50,6 @@ export const RegistryPurchase: CollectionConfig = {
     {
       name: 'purchaserEmail',
       type: 'email',
-      required: true,
     },
   ],
   timestamps: true,
