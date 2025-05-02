@@ -4,11 +4,21 @@ import RichText from '@/components/rich-text';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  FormControl,
+  FormField,
+  FormLabel,
+  FormMessage,
+  FormRoot,
+  FormSubmit,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -45,71 +55,114 @@ export function RegistryItemDialog({ item, purchasedCount }: Props) {
   const [viewState, setViewState] = useState<ViewState>('initial');
   const [flow, setFlow] = useState<Flow>('new-purchase');
 
+  const purchased = purchasedCount >= (item.quantityRequested ?? 0);
+
   return (
-    <DialogContent className="flex flex-col justify-evenly gap-8 p-8 sm:grid sm:max-w-xl sm:grid-cols-2 md:max-w-2xl lg:max-w-3xl">
-      {typeof item.image === 'object' && (
-        <Image
-          src={item.image.url!}
-          alt={item.image.alt}
-          width={item.image.width!}
-          height={item.image.height!}
-          className="basis-1/2"
-        />
-      )}
-      <form action={submitRegistryPurchase}>
-        <input type="hidden" name="registryItem" value={item.id} />
-        <div
-          className={cn('flex flex-col', viewState !== 'initial' && 'hidden')}
-        >
-          <InitialView
-            purchasedCount={purchasedCount}
-            item={item}
-            flow={flow}
-            setFlow={setFlow}
-            setViewState={setViewState}
+    <Dialog>
+      <div className="flex w-full flex-col gap-2">
+        <DialogTrigger asChild>
+          <Button
+            disabled={purchased}
+            onClick={() => {
+              setViewState('initial');
+              setFlow('new-purchase');
+            }}
+          >
+            {purchased ? 'This gift has been purchased' : 'Purchase this gift'}
+          </Button>
+        </DialogTrigger>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            disabled={purchased}
+            onClick={() => {
+              setViewState('already-purchased');
+              setFlow('existing-purchase');
+            }}
+          >
+            I Already Purchased This Gift
+          </Button>
+        </DialogTrigger>
+      </div>
+      <DialogContent className="flex flex-col justify-evenly gap-8 p-8 sm:grid sm:max-w-xl sm:grid-cols-2 md:max-w-2xl lg:max-w-3xl">
+        {typeof item.image === 'object' && (
+          <Image
+            src={item.image.url!}
+            alt={item.image.alt}
+            width={item.image.width!}
+            height={item.image.height!}
+            className="basis-1/2"
           />
-        </div>
-        <div
-          className={cn(
-            'flex flex-col',
-            viewState !== 'already-purchased' && 'hidden',
-          )}
-        >
-          <AlreadyPurchasedView
-            purchasedCount={purchasedCount}
-            item={item}
-            flow={flow}
-            setFlow={setFlow}
-            setViewState={setViewState}
-          />
-        </div>
-        <div className={cn('flex flex-col', viewState !== 'store' && 'hidden')}>
-          <StoreView
-            purchasedCount={purchasedCount}
-            item={item}
-            flow={flow}
-            setFlow={setFlow}
-            setViewState={setViewState}
-          />
-        </div>
-        <div
-          className={cn('flex flex-col', viewState !== 'purchased' && 'hidden')}
-        >
-          <ContactInfoView
-            purchasedCount={purchasedCount}
-            item={item}
-            flow={flow}
-            setFlow={setFlow}
-            setViewState={setViewState}
-          />
-        </div>
-        <div
-          className={cn('flex flex-col', viewState !== 'submitted' && 'hidden')}
-        >
-          <SubmittedView />
-        </div>
-      </form>
-    </DialogContent>
+        )}
+        <FormRoot action={submitRegistryPurchase}>
+          <input type="hidden" name="registryItem" value={item.id} />
+          <div
+            className={cn('flex flex-col', viewState !== 'initial' && 'hidden')}
+          >
+            <InitialView
+              purchasedCount={purchasedCount}
+              item={item}
+              flow={flow}
+              setFlow={setFlow}
+              setViewState={setViewState}
+            />
+          </div>
+          <div
+            className={cn(
+              'flex flex-col',
+              viewState !== 'already-purchased' && 'hidden',
+            )}
+          >
+            <AlreadyPurchasedView
+              purchasedCount={purchasedCount}
+              item={item}
+              flow={flow}
+              setFlow={setFlow}
+              setViewState={setViewState}
+            />
+          </div>
+          <div
+            className={cn('flex flex-col', viewState !== 'store' && 'hidden')}
+          >
+            <StoreView
+              purchasedCount={purchasedCount}
+              item={item}
+              flow={flow}
+              setFlow={setFlow}
+              setViewState={setViewState}
+            />
+          </div>
+          <div
+            className={cn(
+              'flex flex-col',
+              viewState !== 'purchased' && 'hidden',
+            )}
+          >
+            <ContactInfoView
+              purchasedCount={purchasedCount}
+              item={item}
+              flow={flow}
+              setFlow={setFlow}
+              setViewState={setViewState}
+            />
+          </div>
+          <div
+            className={cn(
+              'flex flex-col',
+              viewState !== 'submitted' && 'hidden',
+            )}
+          >
+            <SubmittedView
+              purchasedCount={purchasedCount}
+              item={item}
+              flow={flow}
+              setFlow={setFlow}
+              setViewState={setViewState}
+            />
+          </div>
+        </FormRoot>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -169,11 +222,7 @@ function InitialView({
           }}
         >
           Purchase This Gift
-          {typeof item.store === 'object' && (
-            <span className="text-sm font-semibold">
-              From {item.store?.label}
-            </span>
-          )}
+          {typeof item.store === 'object' && <> From {item.store?.label}</>}
         </Button>
         <Button
           type="button"
@@ -210,20 +259,13 @@ function AlreadyPurchasedView({
           Back
         </Button>
         <DialogTitle>{item.title}</DialogTitle>
-        {flow === 'new-purchase' && (
-          <Button variant="outline" asChild className="my-4 w-full">
-            <a href={item.url} target="_blank" rel="noopener noreferrer">
-              View Gift
-              {typeof item.store === 'object' && <> On {item.store?.label}</>}
-              <ExternalLink />
-            </a>
-          </Button>
-        )}
         <DialogDescription>
-          Let’s update their registry! How many of these did you buy?
+          {flow === 'existing-purchase'
+            ? 'Let’s update their registry! How many of these did you buy?'
+            : 'We’re so grateful for your support as we start this exciting new chapter together. How many of these were you planning to buy?'}
         </DialogDescription>
         <div className="my-4">
-          I bought
+          {flow === 'existing-purchase' ? <>I bought</> : <>I will buy</>}
           <Select name="quantity" defaultValue="1">
             <SelectTrigger className="mx-2 inline-flex w-16">
               <SelectValue placeholder="1" />
@@ -243,7 +285,13 @@ function AlreadyPurchasedView({
       </DialogHeader>
       <Button
         type="button"
-        onClick={() => setViewState('store')}
+        onClick={() => {
+          if (flow === 'existing-purchase') {
+            setViewState('store');
+          } else {
+            setViewState('purchased');
+          }
+        }}
         className="my-4 w-full"
       >
         Continue
@@ -353,38 +401,38 @@ function ContactInfoView({ setViewState }: ViewStateProps) {
         <DialogTitle>Who should we say this gift is from?</DialogTitle>
       </DialogHeader>
       <div className="my-4 grid grid-cols-2 gap-4">
-        <div className="col-span-2 flex flex-col gap-2">
-          <Label htmlFor="purchaser-name">Name</Label>
-          <Input
-            id="purchaser-name"
-            name="purchaserName"
-            type="text"
-            className="mb-2 w-full"
-            required
-          />
-        </div>
-        <div className="col-span-2 flex flex-col gap-2">
-          <Label htmlFor="purchaser-email">Email</Label>
-          <Input
-            id="purchaser-email"
-            name="purchaserEmail"
-            type="email"
-            className="mb-2 w-full"
-          />
-        </div>
+        <FormField name="purchaserName" className="col-span-2">
+          <FormLabel>Name</FormLabel>
+          <FormControl asChild>
+            <Input type="text" className="w-full" required />
+          </FormControl>
+          <FormMessage match="valueMissing">
+            Please enter your name. This tells us purchases are happening from
+            real people and not bots.
+          </FormMessage>
+        </FormField>
+        <FormField name="purchaserEmail" className="col-span-2">
+          <FormLabel>Email</FormLabel>
+          <FormControl asChild>
+            <Input type="email" className="w-full" />
+          </FormControl>
+          <FormMessage>Optional</FormMessage>
+          <FormMessage match="typeMismatch">
+            Please provide a valid email or leave this blank.
+          </FormMessage>
+        </FormField>
       </div>
-      <Button
+      <FormSubmit
         className="mt-auto w-full"
-        type="submit"
-        onClick={() => setViewState('submitted')}
+        onSubmitSuccess={() => setViewState('submitted')}
       >
         Submit
-      </Button>
+      </FormSubmit>
     </>
   );
 }
 
-function SubmittedView() {
+function SubmittedView({ flow, item }: ViewStateProps) {
   return (
     <>
       <DialogHeader>
@@ -397,8 +445,25 @@ function SubmittedView() {
           <br />
           <br />
           Love, Rachel and Jack
+          <br />
+          <br />
+          {flow === 'new-purchase' && (
+            <>
+              If you change your mind about your purchase, please reach out
+              Jessica or Stacie Mintz.
+            </>
+          )}
         </DialogDescription>
       </DialogHeader>
+      {flow === 'new-purchase' && (
+        <Button variant="outline" asChild className="mt-4 w-full">
+          <a href={item.url} target="_blank" rel="noopener noreferrer">
+            View Gift
+            {typeof item.store === 'object' && <> On {item.store?.label}</>}
+            <ExternalLink />
+          </a>
+        </Button>
+      )}
     </>
   );
 }

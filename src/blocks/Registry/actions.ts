@@ -40,17 +40,29 @@ const validate = ajv.compile(
   }),
 );
 
-export async function submitRegistryPurchase(formData: FormData) {
+export type Result = {
+  errors: Record<string, string | undefined>;
+  success: boolean;
+};
+
+export async function submitRegistryPurchase(
+  _previousState: Result,
+  formData: FormData,
+): Promise<Result> {
   const payload = await getPayload({ config: configPromise });
   const data = Object.fromEntries(formData.entries());
   const isValid = validate(data);
 
   if (!isValid) {
-    const errors = validate.errors?.map((error) => ({
-      message: error.message,
-      params: error.params,
-    }));
-    throw new Error(`Validation failed: ${JSON.stringify(errors)}`);
+    return {
+      errors: Object.fromEntries(
+        validate.errors?.map((error) => [
+          error.instancePath.slice(1),
+          error.message,
+        ]) ?? [],
+      ),
+      success: false,
+    };
   }
 
   await payload.create({
@@ -59,4 +71,9 @@ export async function submitRegistryPurchase(formData: FormData) {
   });
 
   revalidatePath('/registry');
+
+  return {
+    errors: {},
+    success: true,
+  };
 }

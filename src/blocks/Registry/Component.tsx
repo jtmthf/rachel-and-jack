@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -7,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { registry_purchase } from '@/payload-generated-schema';
 import {
@@ -87,17 +85,7 @@ async function RegistryItemCard({ item }: RegistryItemCardProps) {
         )}
       </CardContent>
       <CardFooter>
-        <Dialog key={item.id}>
-          <DialogTrigger asChild>
-            <Button
-              className="w-full"
-              disabled={purchasedCount >= (item.quantityRequested ?? 0)}
-            >
-              Purchase This Gift
-            </Button>
-          </DialogTrigger>
-          <RegistryItemDialog item={item} purchasedCount={purchasedCount} />
-        </Dialog>
+        <RegistryItemDialog item={item} purchasedCount={purchasedCount} />
       </CardFooter>
     </Card>
   );
@@ -132,7 +120,8 @@ const countRegistryPurchases = cache(async (itemId: number) => {
 
   const [{ purchasedCount }] = await payload.db.drizzle
     .select({
-      purchasedCount: sql`coalesce(sum(${registry_purchase.quantity}), 0)`.mapWith(Number),
+      purchasedCount:
+        sql`coalesce(sum(${registry_purchase.quantity}), 0)`.mapWith(Number),
     })
     .from(registry_purchase)
     .where(eq(registry_purchase.registryItem, itemId));
