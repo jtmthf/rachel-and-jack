@@ -13,8 +13,7 @@ import {
   RegistryItem,
 } from '@/payload-types';
 import configPromise from '@payload-config';
-import { eq, sql } from '@payloadcms/db-vercel-postgres/drizzle';
-import { draftMode } from 'next/headers';
+import { inArray, sql } from '@payloadcms/db-vercel-postgres/drizzle';
 import Image from 'next/image';
 import { getPayload } from 'payload';
 import { cache } from 'react';
@@ -23,12 +22,31 @@ import { RegistryItemDialog } from './RegistryItemDialog';
 
 type Props = BaseBlockProps & RegistryBlockProps;
 
-export default async function RegistryBlock({ slug }: Props) {
-  const registryItems = await queryRegistryItems();
+export default async function RegistryBlock({ items }: Props) {
+  const registryItems =
+    items?.filter((item): item is RegistryItem => typeof item === 'object') ??
+    [];
+  const purchasedCounts = await countRegistryPurchases(
+    registryItems.map((item) => item.id),
+  );
+  const registryItemsWithCounts = registryItems.map((item) => ({
+    ...item,
+    purchasedCount: purchasedCounts.get(item.id) ?? 0,
+  }));
+  const { availableItems = [], purchasedItems = [] } = Object.groupBy(
+    registryItemsWithCounts,
+    (item) =>
+      item.quantityRequested && item.purchasedCount < item.quantityRequested
+        ? 'availableItems'
+        : 'purchasedItems',
+  );
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {registryItems.map((item) => (
+      {availableItems.map((item) => (
+        <RegistryItemCard key={item.id} item={item} />
+      ))}
+      {purchasedItems.map((item) => (
         <RegistryItemCard key={item.id} item={item} />
       ))}
     </div>
@@ -36,12 +54,12 @@ export default async function RegistryBlock({ slug }: Props) {
 }
 
 type RegistryItemCardProps = {
-  item: RegistryItem;
+  item: RegistryItem & { purchasedCount: number };
 };
 
-async function RegistryItemCard({ item }: RegistryItemCardProps) {
-  const purchasedCount = await countRegistryPurchases(item.id);
-
+async function RegistryItemCard({
+  item: { purchasedCount, ...item },
+}: RegistryItemCardProps) {
   const formatPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -91,40 +109,23 @@ async function RegistryItemCard({ item }: RegistryItemCardProps) {
   );
 }
 
-const queryRegistryItems = cache(async () => {
-  const { isEnabled: draft } = await draftMode();
+const countRegistryPurchases = cache(async (itemIds: number[]) => {
   const payload = await getPayload({ config: configPromise });
 
-  const result = await payload.find({
-    collection: 'registry-item',
-    draft,
-    pagination: false,
-    overrideAccess: draft,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      price: true,
-      quantityRequested: true,
-      url: true,
-      image: true,
-      store: true,
-    },
-  });
-
-  return result.docs;
-});
-
-const countRegistryPurchases = cache(async (itemId: number) => {
-  const payload = await getPayload({ config: configPromise });
-
-  const [{ purchasedCount }] = await payload.db.drizzle
+  const result = await payload.db.drizzle
     .select({
+      registryItem: registry_purchase.registryItem,
       purchasedCount:
         sql`coalesce(sum(${registry_purchase.quantity}), 0)`.mapWith(Number),
     })
     .from(registry_purchase)
-    .where(eq(registry_purchase.registryItem, itemId));
+    .where(inArray(registry_purchase.registryItem, itemIds))
+    .groupBy(registry_purchase.registryItem);
 
-  return purchasedCount;
+  return new Map(
+    result.map(({ registryItem, purchasedCount }) => [
+      registryItem,
+      purchasedCount,
+    ]),
+  );
 });

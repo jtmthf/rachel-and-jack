@@ -301,9 +301,83 @@ export interface PlaceTag {
  * via the `definition` "RegistryBlock".
  */
 export interface RegistryBlock {
+  items?: (number | RegistryItem)[] | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'registry';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-item".
+ */
+export interface RegistryItem {
+  id: number;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  category?: (number | RegistryCategory)[] | null;
+  store?: (number | null) | RegistryStore;
+  price: number;
+  url: string;
+  quantityRequested?: number | null;
+  image: number | Media;
+  registryPurchases?: {
+    docs?: (number | RegistryPurchase)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-category".
+ */
+export interface RegistryCategory {
+  id: number;
+  label: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-store".
+ */
+export interface RegistryStore {
+  id: number;
+  label: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registry-purchase".
+ */
+export interface RegistryPurchase {
+  id: number;
+  registryItem: number | RegistryItem;
+  quantity: number;
+  purchasedAt: 'online' | 'in-store';
+  orderNumber?: string | null;
+  purchaserName: string;
+  purchaserEmail?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -384,80 +458,6 @@ export interface ThingsToDo {
   category?: (number | ThingsToDoCategory)[] | null;
   description: string;
   image: number | Media;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "registry-category".
- */
-export interface RegistryCategory {
-  id: number;
-  label: string;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "registry-item".
- */
-export interface RegistryItem {
-  id: number;
-  title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  category?: (number | RegistryCategory)[] | null;
-  store?: (number | null) | RegistryStore;
-  price: number;
-  url: string;
-  quantityRequested?: number | null;
-  image: number | Media;
-  registryPurchases?: {
-    docs?: (number | RegistryPurchase)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "registry-store".
- */
-export interface RegistryStore {
-  id: number;
-  label: string;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "registry-purchase".
- */
-export interface RegistryPurchase {
-  id: number;
-  registryItem: number | RegistryItem;
-  quantity: number;
-  purchasedAt: 'online' | 'in-store';
-  orderNumber?: string | null;
-  purchaserName: string;
-  purchaserEmail?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -669,6 +669,7 @@ export interface PlaceBlockSelect<T extends boolean = true> {
  * via the `definition` "RegistryBlock_select".
  */
 export interface RegistryBlockSelect<T extends boolean = true> {
+  items?: T;
   id?: T;
   blockName?: T;
 }
@@ -754,7 +755,6 @@ export interface RegistryItemSelect<T extends boolean = true> {
   registryPurchases?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
