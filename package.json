@@ -35,9 +35,9 @@
     "@radix-ui/react-slot": "^1.2.0",
     "@radix-ui/react-tabs": "^1.1.8",
     "@radix-ui/react-visually-hidden": "^1.2.0",
-    "@sentry/nextjs": "^9.15.0",
+    "@sentry/nextjs": "^9.23.0",
     "@sinclair/typebox": "^0.34.15",
-    "@vercel/functions": "^2.0.0",
+    "@vercel/functions": "^2.1.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "class-variance-authority": "^0.7.1",
@@ -46,28 +46,28 @@
     "google-spreadsheet": "^4.1.4",
     "graphql": "^16.10.0",
     "lucide-react": "^0.501.0",
-    "next": "15.3.1",
+    "next": "15.3.2",
     "payload": "^3.39.1",
     "payload-admin-bar": "^1.0.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sharp": "^0.33.5",
+    "sharp": "^0.34.2",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
-    "@next/mdx": "15.3.1",
+    "@next/mdx": "15.3.2",
     "@playwright/test": "^1.50.1",
     "@tailwindcss/postcss": "^4.1.4",
     "@tailwindcss/typography": "^0.5.16",
     "@types/mdx": "^2.0.13",
-    "@types/node": "^22.13.1",
-    "@types/react": "19.1.2",
-    "@types/react-dom": "19.1.2",
+    "@types/node": "^22.15.24",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.5",
     "eslint": "^9.21.0",
-    "eslint-config-next": "15.3.1",
+    "eslint-config-next": "15.3.2",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "postcss": "^8.5.3",
@@ -98,7 +98,12 @@
       "@types/react-dom": "19.1.2"
     },
     "onlyBuiltDependencies": [
-      "sharp"
+      "@sentry/cli",
+      "bufferutil",
+      "esbuild",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate"
     ]
   }
 }
