@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { getPayload } from 'payload';
 import { cache } from 'react';
 import { BaseBlockProps } from '../RenderBlocks';
+import { HoneymoonFundCard } from './HoneymoonFundCard';
 import { RegistryItemDialog } from './RegistryItemDialog';
 
 type Props = BaseBlockProps & RegistryBlockProps;
@@ -43,6 +44,8 @@ export default async function RegistryBlock({ items }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <HoneymoonFundCard />
+
       {availableItems.map((item) => (
         <RegistryItemCard key={item.id} item={item} />
       ))}

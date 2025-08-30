@@ -67,7 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
+    'honeymoon-contributions': HoneymoonContribution;
     media: Media;
     pages: Page;
     'place-tag': PlaceTag;
@@ -77,6 +77,7 @@ export interface Config {
     'registry-store': RegistryStore;
     'things-to-do': ThingsToDo;
     'things-to-do-category': ThingsToDoCategory;
+    users: User;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -87,7 +88,7 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    'honeymoon-contributions': HoneymoonContributionsSelect<false> | HoneymoonContributionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
@@ -97,6 +98,7 @@ export interface Config {
     'registry-store': RegistryStoreSelect<false> | RegistryStoreSelect<true>;
     'things-to-do': ThingsToDoSelect<false> | ThingsToDoSelect<true>;
     'things-to-do-category': ThingsToDoCategorySelect<false> | ThingsToDoCategorySelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -135,27 +137,18 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "honeymoon-contributions".
  */
-export interface User {
+export interface HoneymoonContribution {
   id: number;
+  name: string;
+  email?: string | null;
+  amount: number;
+  message?: string | null;
+  stripePaymentIntentId: string;
+  status?: ('pending' | 'completed' | 'failed') | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -470,14 +463,38 @@ export interface ThingsToDo {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'honeymoon-contributions';
+        value: number | HoneymoonContribution;
       } | null)
     | ({
         relationTo: 'media';
@@ -514,6 +531,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'things-to-do-category';
         value: number | ThingsToDoCategory;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -559,25 +580,17 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "honeymoon-contributions_select".
  */
-export interface UsersSelect<T extends boolean = true> {
+export interface HoneymoonContributionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  amount?: T;
+  message?: T;
+  stripePaymentIntentId?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -815,6 +828,28 @@ export interface ThingsToDoCategorySelect<T extends boolean = true> {
   slug?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

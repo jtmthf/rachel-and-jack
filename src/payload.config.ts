@@ -1,12 +1,13 @@
-// storage-adapter-import-placeholder
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres';
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
+import { stripePlugin } from '@payloadcms/plugin-stripe';
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
 import path from 'path';
 import { buildConfig } from 'payload';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 
+import { HoneymoonContribution } from './collections/HoneymoonContribution';
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
 import { PlaceTag } from './collections/PlaceTag';
@@ -30,7 +31,7 @@ export default buildConfig({
     },
   },
   collections: [
-    Users,
+    HoneymoonContribution,
     Media,
     Pages,
     PlaceTag,
@@ -40,6 +41,7 @@ export default buildConfig({
     RegistryStore,
     ThingsToDo,
     ThingsToDoCategory,
+    Users,
   ],
   editor: defaultLexical,
   secret: process.env.PAYLOAD_SECRET || '',
@@ -59,6 +61,10 @@ export default buildConfig({
         media: true,
       },
       token: process.env.BLOB_READ_WRITE_TOKEN,
+    }),
+    stripePlugin({
+      stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+      rest: true,
     }),
   ],
 });
