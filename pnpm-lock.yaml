@@ -11,6 +11,9 @@ overrides:
 importers:
   .:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.958.0
+        version: 3.958.0
       '@aws-sdk/credential-provider-web-identity':
         specifier: ^3.734.0
         version: 3.787.0
@@ -113,6 +116,9 @@ importers:
       graphql:
         specifier: ^16.10.0
         version: 16.10.0
+      hono:
+        specifier: ^4.11.3
+        version: 4.11.3
       lucide-react:
         specifier: ^0.501.0
         version: 0.501.0(react@19.2.3)
@@ -583,13 +589,6 @@ packages:
     resolution:
       {
         integrity: sha512-xwF9K24mZSxcxKS3UKQFeX/dPYkEps9wF1b+MGON7EvnbcucrJGyQyK1v1xFPn1aqXkBTFi+SZaMRx5E5YCVFw==,
-      }
-    engines: { node: '>=18.0.0' }
-
-  '@aws-sdk/util-locate-window@3.723.0':
-    resolution:
-      {
-        integrity: sha512-Yf2CS10BqK688DRsrKI/EO6B8ff5J86NXe4C+VCysK7UOgN0l1zOTeTukZ3H8Q9tYYX3oaF1961o8vRkFm7Nmw==,
       }
     engines: { node: '>=18.0.0' }
 
@@ -7066,6 +7065,13 @@ packages:
       }
     engines: { node: '>=0.10.0' }
 
+  hono@4.11.3:
+    resolution:
+      {
+        integrity: sha512-PmQi306+M/ct/m5s66Hrg+adPnkD5jiO6IjA7WhWw0gSBSo1EcRegwuI1deZ+wd5pzCGynCcn2DprnE4/yEV4w==,
+      }
+    engines: { node: '>=16.9.0' }
+
   http-status@2.1.0:
     resolution:
       {
@@ -10618,8 +10624,8 @@ snapshots:
       '@aws-crypto/sha256-js': 5.2.0
       '@aws-crypto/supports-web-crypto': 5.2.0
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/types': 3.775.0
-      '@aws-sdk/util-locate-window': 3.723.0
+      '@aws-sdk/types': 3.957.0
+      '@aws-sdk/util-locate-window': 3.957.0
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
@@ -10632,7 +10638,7 @@ snapshots:
   '@aws-crypto/sha256-js@5.2.0':
     dependencies:
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/types': 3.775.0
+      '@aws-sdk/types': 3.957.0
       tslib: 2.8.1
 
   '@aws-crypto/supports-web-crypto@5.2.0':
@@ -10647,7 +10653,7 @@ snapshots:
 
   '@aws-crypto/util@5.2.0':
     dependencies:
-      '@aws-sdk/types': 3.775.0
+      '@aws-sdk/types': 3.957.0
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
@@ -11269,10 +11275,6 @@ snapshots:
       '@smithy/types': 4.11.0
       '@smithy/url-parser': 4.2.7
       '@smithy/util-endpoints': 3.2.7
-      tslib: 2.8.1
-
-  '@aws-sdk/util-locate-window@3.723.0':
-    dependencies:
       tslib: 2.8.1
 
   '@aws-sdk/util-locate-window@3.957.0':
@@ -15918,6 +15920,8 @@ snapshots:
   homedir-polyfill@1.0.3:
     dependencies:
       parse-passwd: 1.0.0
+
+  hono@4.11.3: {}
 
   http-status@2.1.0: {}
 
