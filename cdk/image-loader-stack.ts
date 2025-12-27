@@ -31,6 +31,13 @@ export class ImageLoaderStack extends cdk.Stack {
 
     const bucket = new s3.Bucket(this, 'ImageLoaderBucket', {
       bucketName: `image-loader-bucket-${this.account}-${this.region}`,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
     });
 
     bucket.grantReadWrite(vercelRole);
