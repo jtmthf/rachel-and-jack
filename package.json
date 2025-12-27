@@ -22,6 +22,7 @@
     "@payloadcms/payload-cloud": "^3.69.0",
     "@payloadcms/plugin-stripe": "^3.69.0",
     "@payloadcms/richtext-lexical": "^3.69.0",
+    "@payloadcms/storage-s3": "^3.69.0",
     "@payloadcms/storage-vercel-blob": "^3.69.0",
     "@payloadcms/ui": "^3.69.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -42,6 +43,7 @@
     "@stripe/react-stripe-js": "^3.9.1",
     "@stripe/stripe-js": "^7.8.0",
     "@vercel/functions": "^2.1.0",
+    "@vercel/oidc-aws-credentials-provider": "^3.0.5",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "class-variance-authority": "^0.7.1",
@@ -72,6 +74,9 @@
     "@types/node": "^24.3.0",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "aws-cdk": "^2.1100.1",
+    "aws-cdk-lib": "^2.233.0",
+    "constructs": "^10.4.4",
     "eslint": "^9.21.0",
     "eslint-config-next": "16.1.1",
     "husky": "^9.1.7",
@@ -88,7 +93,7 @@
     "*": "prettier --write --ignore-unknown"
   },
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "pnpm": {
     "peerDependencyRules": {

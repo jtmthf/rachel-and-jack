@@ -1,7 +1,9 @@
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres';
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
 import { stripePlugin } from '@payloadcms/plugin-stripe';
+import { s3Storage } from '@payloadcms/storage-s3';
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
+import { awsCredentialsProvider } from '@vercel/oidc-aws-credentials-provider';
 import path from 'path';
 import { buildConfig } from 'payload';
 import sharp from 'sharp';
@@ -10,6 +12,7 @@ import { fileURLToPath } from 'url';
 import { HoneymoonContribution } from './collections/HoneymoonContribution';
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
+import { Photo } from './collections/Photo';
 import { PlaceTag } from './collections/PlaceTag';
 import { RegistryCategory } from './collections/Registry/RegistryCategory';
 import { RegistryItem } from './collections/Registry/RegistryItem';
@@ -34,6 +37,7 @@ export default buildConfig({
     HoneymoonContribution,
     Media,
     Pages,
+    Photo,
     PlaceTag,
     RegistryCategory,
     RegistryItem,
@@ -56,6 +60,20 @@ export default buildConfig({
   sharp,
   plugins: [
     payloadCloudPlugin(),
+    s3Storage({
+      collections: {
+        photo: true,
+      },
+      signedDownloads: true,
+      clientUploads: true,
+      bucket: process.env.S3_BUCKET!,
+      config: {
+        region: process.env.AWS_REGION!,
+        credentials: awsCredentialsProvider({
+          roleArn: process.env.AWS_ROLE_ARN!,
+        }),
+      },
+    }),
     vercelBlobStorage({
       collections: {
         media: true,

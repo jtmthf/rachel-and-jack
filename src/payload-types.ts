@@ -70,6 +70,7 @@ export interface Config {
     'honeymoon-contributions': HoneymoonContribution;
     media: Media;
     pages: Page;
+    photo: Photo;
     'place-tag': PlaceTag;
     'registry-category': RegistryCategory;
     'registry-item': RegistryItem;
@@ -79,6 +80,7 @@ export interface Config {
     'things-to-do-category': ThingsToDoCategory;
     users: User;
     'payload-kv': PayloadKv;
+    'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -87,11 +89,15 @@ export interface Config {
     'registry-item': {
       registryPurchases: 'registry-purchase';
     };
+    'payload-folders': {
+      documentsAndFolders: 'payload-folders' | 'photo';
+    };
   };
   collectionsSelect: {
     'honeymoon-contributions': HoneymoonContributionsSelect<false> | HoneymoonContributionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    photo: PhotoSelect<false> | PhotoSelect<true>;
     'place-tag': PlaceTagSelect<false> | PlaceTagSelect<true>;
     'registry-category': RegistryCategorySelect<false> | RegistryCategorySelect<true>;
     'registry-item': RegistryItemSelect<false> | RegistryItemSelect<true>;
@@ -101,6 +107,7 @@ export interface Config {
     'things-to-do-category': ThingsToDoCategorySelect<false> | ThingsToDoCategorySelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -466,6 +473,52 @@ export interface ThingsToDo {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photo".
+ */
+export interface Photo {
+  id: number;
+  alt: string;
+  folder?: (number | null) | FolderInterface;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-folders".
+ */
+export interface FolderInterface {
+  id: number;
+  name: string;
+  folder?: (number | null) | FolderInterface;
+  documentsAndFolders?: {
+    docs?: (
+      | {
+          relationTo?: 'payload-folders';
+          value: number | FolderInterface;
+        }
+      | {
+          relationTo?: 'photo';
+          value: number | Photo;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  folderType?: 'photo'[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -525,6 +578,10 @@ export interface PayloadLockedDocument {
         value: number | Page;
       } | null)
     | ({
+        relationTo: 'photo';
+        value: number | Photo;
+      } | null)
+    | ({
         relationTo: 'place-tag';
         value: number | PlaceTag;
       } | null)
@@ -555,6 +612,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'payload-folders';
+        value: number | FolderInterface;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -768,6 +829,25 @@ export interface ThingsToDoBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photo_select".
+ */
+export interface PhotoSelect<T extends boolean = true> {
+  alt?: T;
+  folder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "place-tag_select".
  */
 export interface PlaceTagSelect<T extends boolean = true> {
@@ -878,6 +958,18 @@ export interface UsersSelect<T extends boolean = true> {
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-folders_select".
+ */
+export interface PayloadFoldersSelect<T extends boolean = true> {
+  name?: T;
+  folder?: T;
+  documentsAndFolders?: T;
+  folderType?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
