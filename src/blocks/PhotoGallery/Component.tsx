@@ -1,18 +1,11 @@
 import { cn } from '@/lib/utils';
 import type { PhotoGalleryBlock as PhotoGalleryBlockProps } from '@/payload-types';
 import configPromise from '@payload-config';
-import dynamic from 'next/dynamic';
 import { Baskervville_SC } from 'next/font/google';
 import { getPayload } from 'payload';
 import { cache } from 'react';
 import type { BaseBlockProps } from '../RenderBlocks';
-
-const PhotoGrid = dynamic(
-  () => import('./PhotoGrid').then((m) => m.PhotoGrid),
-  {
-    ssr: false,
-  },
-);
+import { PhotoGridClient } from './PhotoGridClient';
 
 const baskerville = Baskervville_SC({
   weight: '400',
@@ -36,7 +29,7 @@ export default async function PhotoGalleryBlock({ folder }: Props) {
               {name}
             </h3>
           )}
-          <PhotoGrid photos={photos} />
+          <PhotoGridClient photos={photos} />
         </section>
       ))}
     </div>
