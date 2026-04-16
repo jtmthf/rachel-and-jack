@@ -1,11 +1,17 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { awsCredentialsProvider } from '@vercel/oidc-aws-credentials-provider';
 import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 import sharp from 'sharp';
 import { Readable } from 'stream';
 
 export const app = new Hono().basePath('/api/image');
-const s3Client = new S3Client({});
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION!,
+  credentials: awsCredentialsProvider({
+    roleArn: process.env.AWS_ROLE_ARN!,
+  }),
+});
 
 // Configuration
 const REMOTE_PATTERNS = [
