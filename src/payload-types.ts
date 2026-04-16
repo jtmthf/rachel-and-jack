@@ -116,8 +116,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    navigation: Navigation;
+  };
+  globalsSelect: {
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -188,7 +192,16 @@ export interface Page {
   title: string;
   slug?: string | null;
   content?:
-    | (CardBlock | ContentBlock | PlaceBlock | RegistryBlock | ScheduleBlock | StackBlock | ThingsToDoBlock)[]
+    | (
+        | CardBlock
+        | ContentBlock
+        | PhotoGalleryBlock
+        | PlaceBlock
+        | RegistryBlock
+        | ScheduleBlock
+        | StackBlock
+        | ThingsToDoBlock
+      )[]
     | null;
   updatedAt: string;
   createdAt: string;
@@ -265,6 +278,19 @@ export interface ContentBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PhotoGalleryBlock".
+ */
+export interface PhotoGalleryBlock {
+  /**
+   * Top-level folder name (e.g. "Engagement", "Wedding")
+   */
+  folder: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'photo-gallery';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -703,6 +729,7 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         card?: T | CardBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
+        'photo-gallery'?: T | PhotoGalleryBlockSelect<T>;
         place?: T | PlaceBlockSelect<T>;
         registry?: T | RegistryBlockSelect<T>;
         schedule?: T | ScheduleBlockSelect<T>;
@@ -755,6 +782,15 @@ export interface ContentBlockSelect<T extends boolean = true> {
         id?: T;
       };
   separator?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PhotoGalleryBlock_select".
+ */
+export interface PhotoGalleryBlockSelect<T extends boolean = true> {
+  folder?: T;
   id?: T;
   blockName?: T;
 }
@@ -1002,6 +1038,58 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  items?:
+    | {
+        title: string;
+        /**
+         * Leave blank if this item opens a dropdown
+         */
+        href?: string | null;
+        /**
+         * Sub-links shown in a dropdown (desktop) or nested list (mobile)
+         */
+        children?:
+          | {
+              title: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        title?: T;
+        href?: T;
+        children?:
+          | T
+          | {
+              title?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

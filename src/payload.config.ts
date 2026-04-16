@@ -22,6 +22,7 @@ import { ThingsToDo } from './collections/ThingsToDo';
 import { ThingsToDoCategory } from './collections/ThingsToDoCategory';
 import { Users } from './collections/Users';
 import { defaultLexical } from './fields/default-lexical';
+import { Navigation } from './globals/Navigation';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -47,6 +48,7 @@ export default buildConfig({
     ThingsToDoCategory,
     Users,
   ],
+  globals: [Navigation],
   editor: defaultLexical,
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -6,6 +6,7 @@
  * and re-run `payload generate:db-schema` to regenerate this file.
  */
 
+import type {} from '@payloadcms/db-vercel-postgres';
 import { relations } from '@payloadcms/db-vercel-postgres/drizzle';
 import {
   boolean,
@@ -21,10 +22,19 @@ import {
   timestamp,
   uniqueIndex,
   varchar,
+  type AnyPgColumn,
 } from '@payloadcms/db-vercel-postgres/drizzle/pg-core';
+export const enum_honeymoon_contributions_status = pgEnum(
+  'enum_honeymoon_contributions_status',
+  ['pending', 'completed', 'failed'],
+);
 export const enum_pages_blocks_content_columns_size = pgEnum(
   'enum_pages_blocks_content_columns_size',
   ['oneThird', 'half', 'twoThirds', 'full'],
+);
+export const enum_pages_blocks_photo_gallery_folder = pgEnum(
+  'enum_pages_blocks_photo_gallery_folder',
+  ['Barn'],
 );
 export const enum_pages_blocks_stack_direction = pgEnum(
   'enum_pages_blocks_stack_direction',
@@ -38,6 +48,10 @@ export const enum__pages_v_blocks_content_columns_size = pgEnum(
   'enum__pages_v_blocks_content_columns_size',
   ['oneThird', 'half', 'twoThirds', 'full'],
 );
+export const enum__pages_v_blocks_photo_gallery_folder = pgEnum(
+  'enum__pages_v_blocks_photo_gallery_folder',
+  ['Barn'],
+);
 export const enum__pages_v_blocks_stack_direction = pgEnum(
   'enum__pages_v_blocks_stack_direction',
   ['vertical', 'horizontal'],
@@ -46,23 +60,25 @@ export const enum__pages_v_version_status = pgEnum(
   'enum__pages_v_version_status',
   ['draft', 'published'],
 );
-export const enum_registry_item_status = pgEnum('enum_registry_item_status', [
-  'draft',
-  'published',
-]);
-export const enum__registry_item_v_version_status = pgEnum(
-  'enum__registry_item_v_version_status',
-  ['draft', 'published'],
-);
 export const enum_registry_purchase_purchased_at = pgEnum(
   'enum_registry_purchase_purchased_at',
   ['online', 'in-store'],
 );
+export const enum_payload_folders_folder_type = pgEnum(
+  'enum_payload_folders_folder_type',
+  ['photo'],
+);
 
-export const users = pgTable(
-  'users',
+export const honeymoon_contributions = pgTable(
+  'honeymoon_contributions',
   {
     id: serial('id').primaryKey(),
+    name: varchar('name').notNull(),
+    email: varchar('email'),
+    amount: numeric('amount', { mode: 'number' }).notNull(),
+    message: varchar('message'),
+    stripePaymentIntentId: varchar('stripe_payment_intent_id').notNull(),
+    status: enum_honeymoon_contributions_status('status').default('pending'),
     updatedAt: timestamp('updated_at', {
       mode: 'string',
       withTimezone: true,
@@ -77,27 +93,14 @@ export const users = pgTable(
     })
       .defaultNow()
       .notNull(),
-    email: varchar('email').notNull(),
-    resetPasswordToken: varchar('reset_password_token'),
-    resetPasswordExpiration: timestamp('reset_password_expiration', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    salt: varchar('salt'),
-    hash: varchar('hash'),
-    loginAttempts: numeric('login_attempts').default('0'),
-    lockUntil: timestamp('lock_until', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
   },
-  (columns) => ({
-    users_updated_at_idx: index('users_updated_at_idx').on(columns.updatedAt),
-    users_created_at_idx: index('users_created_at_idx').on(columns.createdAt),
-    users_email_idx: uniqueIndex('users_email_idx').on(columns.email),
-  }),
+  (columns) => [
+    uniqueIndex('honeymoon_contributions_stripe_payment_intent_id_idx').on(
+      columns.stripePaymentIntentId,
+    ),
+    index('honeymoon_contributions_updated_at_idx').on(columns.updatedAt),
+    index('honeymoon_contributions_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const media = pgTable(
@@ -123,17 +126,17 @@ export const media = pgTable(
     thumbnailURL: varchar('thumbnail_u_r_l'),
     filename: varchar('filename'),
     mimeType: varchar('mime_type'),
-    filesize: numeric('filesize'),
-    width: numeric('width'),
-    height: numeric('height'),
-    focalX: numeric('focal_x'),
-    focalY: numeric('focal_y'),
+    filesize: numeric('filesize', { mode: 'number' }),
+    width: numeric('width', { mode: 'number' }),
+    height: numeric('height', { mode: 'number' }),
+    focalX: numeric('focal_x', { mode: 'number' }),
+    focalY: numeric('focal_y', { mode: 'number' }),
   },
-  (columns) => ({
-    media_updated_at_idx: index('media_updated_at_idx').on(columns.updatedAt),
-    media_created_at_idx: index('media_created_at_idx').on(columns.createdAt),
-    media_filename_idx: uniqueIndex('media_filename_idx').on(columns.filename),
-  }),
+  (columns) => [
+    index('media_updated_at_idx').on(columns.updatedAt),
+    index('media_created_at_idx').on(columns.createdAt),
+    uniqueIndex('media_filename_idx').on(columns.filename),
+  ],
 );
 
 export const pages_blocks_accordion_items = pgTable(
@@ -145,19 +148,15 @@ export const pages_blocks_accordion_items = pgTable(
     title: varchar('title'),
     content: jsonb('content'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_accordion_items_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('pages_blocks_accordion_items_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_accordion_items_order_idx').on(columns._order),
+    index('pages_blocks_accordion_items_parent_id_idx').on(columns._parentID),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages_blocks_accordion.id],
       name: 'pages_blocks_accordion_items_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_accordion = pgTable(
@@ -169,18 +168,16 @@ export const pages_blocks_accordion = pgTable(
     id: varchar('id').primaryKey(),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_accordion_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_accordion_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_accordion_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_accordion_order_idx').on(columns._order),
+    index('pages_blocks_accordion_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_accordion_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_accordion_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_card = pgTable(
@@ -193,18 +190,16 @@ export const pages_blocks_card = pgTable(
     title: varchar('title'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_card_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_card_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_card_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_card_order_idx').on(columns._order),
+    index('pages_blocks_card_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_card_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_card_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_content_columns = pgTable(
@@ -216,19 +211,15 @@ export const pages_blocks_content_columns = pgTable(
     size: enum_pages_blocks_content_columns_size('size').default('full'),
     richText: jsonb('rich_text'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_content_columns_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('pages_blocks_content_columns_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_content_columns_order_idx').on(columns._order),
+    index('pages_blocks_content_columns_parent_id_idx').on(columns._parentID),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages_blocks_content.id],
       name: 'pages_blocks_content_columns_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_content = pgTable(
@@ -241,18 +232,38 @@ export const pages_blocks_content = pgTable(
     separator: boolean('separator').default(false),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_content_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_content_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_content_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_content_order_idx').on(columns._order),
+    index('pages_blocks_content_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_content_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_content_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
+);
+
+export const pages_blocks_photo_gallery = pgTable(
+  'pages_blocks_photo_gallery',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    _path: text('_path').notNull(),
+    id: varchar('id').primaryKey(),
+    folder: enum_pages_blocks_photo_gallery_folder('folder'),
+    blockName: varchar('block_name'),
+  },
+  (columns) => [
+    index('pages_blocks_photo_gallery_order_idx').on(columns._order),
+    index('pages_blocks_photo_gallery_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_photo_gallery_path_idx').on(columns._path),
+    foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [pages.id],
+      name: 'pages_blocks_photo_gallery_parent_id_fk',
+    }).onDelete('cascade'),
+  ],
 );
 
 export const pages_blocks_place = pgTable(
@@ -271,21 +282,17 @@ export const pages_blocks_place = pgTable(
     location: varchar('location'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_place_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_place_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_place_path_idx').on(columns._path),
-    pages_blocks_place_image_idx: index('pages_blocks_place_image_idx').on(
-      columns.image,
-    ),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_place_order_idx').on(columns._order),
+    index('pages_blocks_place_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_place_path_idx').on(columns._path),
+    index('pages_blocks_place_image_idx').on(columns.image),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_place_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_registry = pgTable(
@@ -297,18 +304,16 @@ export const pages_blocks_registry = pgTable(
     id: varchar('id').primaryKey(),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_registry_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_registry_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_registry_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_registry_order_idx').on(columns._order),
+    index('pages_blocks_registry_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_registry_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_registry_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_schedule_events = pgTable(
@@ -322,26 +327,22 @@ export const pages_blocks_schedule_events = pgTable(
       mode: 'string',
       withTimezone: true,
       precision: 3,
-    }).default('Sat Sep 06 2025 00:00:00 GMT-0500 (Central Daylight Time'),
+    }).default('Sat Sep 06 2025 00:00:00 GMT-0400 (Eastern Daylight Time)'),
     time: varchar('time'),
     description: jsonb('description'),
     location: varchar('location'),
     attire: varchar('attire'),
     draft: boolean('draft').default(false),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_schedule_events_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('pages_blocks_schedule_events_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_schedule_events_order_idx').on(columns._order),
+    index('pages_blocks_schedule_events_parent_id_idx').on(columns._parentID),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages_blocks_schedule.id],
       name: 'pages_blocks_schedule_events_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_schedule = pgTable(
@@ -353,18 +354,16 @@ export const pages_blocks_schedule = pgTable(
     id: varchar('id').primaryKey(),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_schedule_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_schedule_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_schedule_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_schedule_order_idx').on(columns._order),
+    index('pages_blocks_schedule_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_schedule_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_schedule_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_stack = pgTable(
@@ -379,18 +378,16 @@ export const pages_blocks_stack = pgTable(
     wrap: boolean('wrap').default(false),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_stack_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_stack_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_stack_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_stack_order_idx').on(columns._order),
+    index('pages_blocks_stack_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_stack_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_stack_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages_blocks_things_to_do = pgTable(
@@ -402,18 +399,16 @@ export const pages_blocks_things_to_do = pgTable(
     id: varchar('id').primaryKey(),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('pages_blocks_things_to_do_order_idx').on(columns._order),
-    _parentIDIdx: index('pages_blocks_things_to_do_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('pages_blocks_things_to_do_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('pages_blocks_things_to_do_order_idx').on(columns._order),
+    index('pages_blocks_things_to_do_parent_id_idx').on(columns._parentID),
+    index('pages_blocks_things_to_do_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [pages.id],
       name: 'pages_blocks_things_to_do_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const pages = pgTable(
@@ -438,12 +433,12 @@ export const pages = pgTable(
       .notNull(),
     _status: enum_pages_status('_status').default('draft'),
   },
-  (columns) => ({
-    pages_slug_idx: index('pages_slug_idx').on(columns.slug),
-    pages_updated_at_idx: index('pages_updated_at_idx').on(columns.updatedAt),
-    pages_created_at_idx: index('pages_created_at_idx').on(columns.createdAt),
-    pages__status_idx: index('pages__status_idx').on(columns._status),
-  }),
+  (columns) => [
+    index('pages_slug_idx').on(columns.slug),
+    index('pages_updated_at_idx').on(columns.updatedAt),
+    index('pages_created_at_idx').on(columns.createdAt),
+    index('pages__status_idx').on(columns._status),
+  ],
 );
 
 export const pages_rels = pgTable(
@@ -454,43 +449,46 @@ export const pages_rels = pgTable(
     parent: integer('parent_id').notNull(),
     path: varchar('path').notNull(),
     'place-tagID': integer('place_tag_id'),
+    'registry-itemID': integer('registry_item_id'),
     'things-to-do-categoryID': integer('things_to_do_category_id'),
     'things-to-doID': integer('things_to_do_id'),
   },
-  (columns) => ({
-    order: index('pages_rels_order_idx').on(columns.order),
-    parentIdx: index('pages_rels_parent_idx').on(columns.parent),
-    pathIdx: index('pages_rels_path_idx').on(columns.path),
-    pages_rels_place_tag_id_idx: index('pages_rels_place_tag_id_idx').on(
-      columns['place-tagID'],
+  (columns) => [
+    index('pages_rels_order_idx').on(columns.order),
+    index('pages_rels_parent_idx').on(columns.parent),
+    index('pages_rels_path_idx').on(columns.path),
+    index('pages_rels_place_tag_id_idx').on(columns['place-tagID']),
+    index('pages_rels_registry_item_id_idx').on(columns['registry-itemID']),
+    index('pages_rels_things_to_do_category_id_idx').on(
+      columns['things-to-do-categoryID'],
     ),
-    pages_rels_things_to_do_category_id_idx: index(
-      'pages_rels_things_to_do_category_id_idx',
-    ).on(columns['things-to-do-categoryID']),
-    pages_rels_things_to_do_id_idx: index('pages_rels_things_to_do_id_idx').on(
-      columns['things-to-doID'],
-    ),
-    parentFk: foreignKey({
+    index('pages_rels_things_to_do_id_idx').on(columns['things-to-doID']),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [pages.id],
       name: 'pages_rels_parent_fk',
     }).onDelete('cascade'),
-    'place-tagIdFk': foreignKey({
+    foreignKey({
       columns: [columns['place-tagID']],
       foreignColumns: [place_tag.id],
       name: 'pages_rels_place_tag_fk',
     }).onDelete('cascade'),
-    'things-to-do-categoryIdFk': foreignKey({
+    foreignKey({
+      columns: [columns['registry-itemID']],
+      foreignColumns: [registry_item.id],
+      name: 'pages_rels_registry_item_fk',
+    }).onDelete('cascade'),
+    foreignKey({
       columns: [columns['things-to-do-categoryID']],
       foreignColumns: [things_to_do_category.id],
       name: 'pages_rels_things_to_do_category_fk',
     }).onDelete('cascade'),
-    'things-to-doIdFk': foreignKey({
+    foreignKey({
       columns: [columns['things-to-doID']],
       foreignColumns: [things_to_do.id],
       name: 'pages_rels_things_to_do_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_accordion_items = pgTable(
@@ -503,19 +501,17 @@ export const _pages_v_blocks_accordion_items = pgTable(
     content: jsonb('content'),
     _uuid: varchar('_uuid'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_accordion_items_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('_pages_v_blocks_accordion_items_parent_id_idx').on(
+  (columns) => [
+    index('_pages_v_blocks_accordion_items_order_idx').on(columns._order),
+    index('_pages_v_blocks_accordion_items_parent_id_idx').on(
       columns._parentID,
     ),
-    _parentIDFk: foreignKey({
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v_blocks_accordion.id],
       name: '_pages_v_blocks_accordion_items_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_accordion = pgTable(
@@ -528,18 +524,16 @@ export const _pages_v_blocks_accordion = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_accordion_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_accordion_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_accordion_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_accordion_order_idx').on(columns._order),
+    index('_pages_v_blocks_accordion_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_accordion_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_accordion_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_card = pgTable(
@@ -553,18 +547,16 @@ export const _pages_v_blocks_card = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_card_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_card_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_card_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_card_order_idx').on(columns._order),
+    index('_pages_v_blocks_card_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_card_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_card_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_content_columns = pgTable(
@@ -577,19 +569,17 @@ export const _pages_v_blocks_content_columns = pgTable(
     richText: jsonb('rich_text'),
     _uuid: varchar('_uuid'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_content_columns_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('_pages_v_blocks_content_columns_parent_id_idx').on(
+  (columns) => [
+    index('_pages_v_blocks_content_columns_order_idx').on(columns._order),
+    index('_pages_v_blocks_content_columns_parent_id_idx').on(
       columns._parentID,
     ),
-    _parentIDFk: foreignKey({
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v_blocks_content.id],
       name: '_pages_v_blocks_content_columns_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_content = pgTable(
@@ -603,18 +593,39 @@ export const _pages_v_blocks_content = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_content_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_content_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_content_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_content_order_idx').on(columns._order),
+    index('_pages_v_blocks_content_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_content_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_content_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
+);
+
+export const _pages_v_blocks_photo_gallery = pgTable(
+  '_pages_v_blocks_photo_gallery',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    _path: text('_path').notNull(),
+    id: serial('id').primaryKey(),
+    folder: enum__pages_v_blocks_photo_gallery_folder('folder'),
+    _uuid: varchar('_uuid'),
+    blockName: varchar('block_name'),
+  },
+  (columns) => [
+    index('_pages_v_blocks_photo_gallery_order_idx').on(columns._order),
+    index('_pages_v_blocks_photo_gallery_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_photo_gallery_path_idx').on(columns._path),
+    foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [_pages_v.id],
+      name: '_pages_v_blocks_photo_gallery_parent_id_fk',
+    }).onDelete('cascade'),
+  ],
 );
 
 export const _pages_v_blocks_place = pgTable(
@@ -634,21 +645,17 @@ export const _pages_v_blocks_place = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_place_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_place_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_place_path_idx').on(columns._path),
-    _pages_v_blocks_place_image_idx: index(
-      '_pages_v_blocks_place_image_idx',
-    ).on(columns.image),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_place_order_idx').on(columns._order),
+    index('_pages_v_blocks_place_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_place_path_idx').on(columns._path),
+    index('_pages_v_blocks_place_image_idx').on(columns.image),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_place_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_registry = pgTable(
@@ -661,18 +668,16 @@ export const _pages_v_blocks_registry = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_registry_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_registry_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_registry_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_registry_order_idx').on(columns._order),
+    index('_pages_v_blocks_registry_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_registry_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_registry_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_schedule_events = pgTable(
@@ -686,7 +691,7 @@ export const _pages_v_blocks_schedule_events = pgTable(
       mode: 'string',
       withTimezone: true,
       precision: 3,
-    }).default('Sat Sep 06 2025 00:00:00 GMT-0500 (Central Daylight Time)'),
+    }).default('Sat Sep 06 2025 00:00:00 GMT-0400 (Eastern Daylight Time)'),
     time: varchar('time'),
     description: jsonb('description'),
     location: varchar('location'),
@@ -694,19 +699,17 @@ export const _pages_v_blocks_schedule_events = pgTable(
     draft: boolean('draft').default(false),
     _uuid: varchar('_uuid'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_schedule_events_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('_pages_v_blocks_schedule_events_parent_id_idx').on(
+  (columns) => [
+    index('_pages_v_blocks_schedule_events_order_idx').on(columns._order),
+    index('_pages_v_blocks_schedule_events_parent_id_idx').on(
       columns._parentID,
     ),
-    _parentIDFk: foreignKey({
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v_blocks_schedule.id],
       name: '_pages_v_blocks_schedule_events_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_schedule = pgTable(
@@ -719,18 +722,16 @@ export const _pages_v_blocks_schedule = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_schedule_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_schedule_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_schedule_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_schedule_order_idx').on(columns._order),
+    index('_pages_v_blocks_schedule_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_schedule_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_schedule_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_stack = pgTable(
@@ -746,18 +747,16 @@ export const _pages_v_blocks_stack = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_stack_order_idx').on(columns._order),
-    _parentIDIdx: index('_pages_v_blocks_stack_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_stack_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_stack_order_idx').on(columns._order),
+    index('_pages_v_blocks_stack_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_stack_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_stack_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v_blocks_things_to_do = pgTable(
@@ -770,20 +769,16 @@ export const _pages_v_blocks_things_to_do = pgTable(
     _uuid: varchar('_uuid'),
     blockName: varchar('block_name'),
   },
-  (columns) => ({
-    _orderIdx: index('_pages_v_blocks_things_to_do_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('_pages_v_blocks_things_to_do_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _pathIdx: index('_pages_v_blocks_things_to_do_path_idx').on(columns._path),
-    _parentIdFk: foreignKey({
+  (columns) => [
+    index('_pages_v_blocks_things_to_do_order_idx').on(columns._order),
+    index('_pages_v_blocks_things_to_do_parent_id_idx').on(columns._parentID),
+    index('_pages_v_blocks_things_to_do_path_idx').on(columns._path),
+    foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_blocks_things_to_do_parent_id_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const _pages_v = pgTable(
@@ -824,29 +819,21 @@ export const _pages_v = pgTable(
     latest: boolean('latest'),
     autosave: boolean('autosave'),
   },
-  (columns) => ({
-    _pages_v_parent_idx: index('_pages_v_parent_idx').on(columns.parent),
-    _pages_v_version_version_slug_idx: index(
-      '_pages_v_version_version_slug_idx',
-    ).on(columns.version_slug),
-    _pages_v_version_version_updated_at_idx: index(
-      '_pages_v_version_version_updated_at_idx',
-    ).on(columns.version_updatedAt),
-    _pages_v_version_version_created_at_idx: index(
-      '_pages_v_version_version_created_at_idx',
-    ).on(columns.version_createdAt),
-    _pages_v_version_version__status_idx: index(
-      '_pages_v_version_version__status_idx',
-    ).on(columns.version__status),
-    _pages_v_created_at_idx: index('_pages_v_created_at_idx').on(
-      columns.createdAt,
+  (columns) => [
+    index('_pages_v_parent_idx').on(columns.parent),
+    index('_pages_v_version_version_slug_idx').on(columns.version_slug),
+    index('_pages_v_version_version_updated_at_idx').on(
+      columns.version_updatedAt,
     ),
-    _pages_v_updated_at_idx: index('_pages_v_updated_at_idx').on(
-      columns.updatedAt,
+    index('_pages_v_version_version_created_at_idx').on(
+      columns.version_createdAt,
     ),
-    _pages_v_latest_idx: index('_pages_v_latest_idx').on(columns.latest),
-    _pages_v_autosave_idx: index('_pages_v_autosave_idx').on(columns.autosave),
-  }),
+    index('_pages_v_version_version__status_idx').on(columns.version__status),
+    index('_pages_v_created_at_idx').on(columns.createdAt),
+    index('_pages_v_updated_at_idx').on(columns.updatedAt),
+    index('_pages_v_latest_idx').on(columns.latest),
+    index('_pages_v_autosave_idx').on(columns.autosave),
+  ],
 );
 
 export const _pages_v_rels = pgTable(
@@ -857,43 +844,86 @@ export const _pages_v_rels = pgTable(
     parent: integer('parent_id').notNull(),
     path: varchar('path').notNull(),
     'place-tagID': integer('place_tag_id'),
+    'registry-itemID': integer('registry_item_id'),
     'things-to-do-categoryID': integer('things_to_do_category_id'),
     'things-to-doID': integer('things_to_do_id'),
   },
-  (columns) => ({
-    order: index('_pages_v_rels_order_idx').on(columns.order),
-    parentIdx: index('_pages_v_rels_parent_idx').on(columns.parent),
-    pathIdx: index('_pages_v_rels_path_idx').on(columns.path),
-    _pages_v_rels_place_tag_id_idx: index('_pages_v_rels_place_tag_id_idx').on(
-      columns['place-tagID'],
+  (columns) => [
+    index('_pages_v_rels_order_idx').on(columns.order),
+    index('_pages_v_rels_parent_idx').on(columns.parent),
+    index('_pages_v_rels_path_idx').on(columns.path),
+    index('_pages_v_rels_place_tag_id_idx').on(columns['place-tagID']),
+    index('_pages_v_rels_registry_item_id_idx').on(columns['registry-itemID']),
+    index('_pages_v_rels_things_to_do_category_id_idx').on(
+      columns['things-to-do-categoryID'],
     ),
-    _pages_v_rels_things_to_do_category_id_idx: index(
-      '_pages_v_rels_things_to_do_category_id_idx',
-    ).on(columns['things-to-do-categoryID']),
-    _pages_v_rels_things_to_do_id_idx: index(
-      '_pages_v_rels_things_to_do_id_idx',
-    ).on(columns['things-to-doID']),
-    parentFk: foreignKey({
+    index('_pages_v_rels_things_to_do_id_idx').on(columns['things-to-doID']),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_pages_v.id],
       name: '_pages_v_rels_parent_fk',
     }).onDelete('cascade'),
-    'place-tagIdFk': foreignKey({
+    foreignKey({
       columns: [columns['place-tagID']],
       foreignColumns: [place_tag.id],
       name: '_pages_v_rels_place_tag_fk',
     }).onDelete('cascade'),
-    'things-to-do-categoryIdFk': foreignKey({
+    foreignKey({
+      columns: [columns['registry-itemID']],
+      foreignColumns: [registry_item.id],
+      name: '_pages_v_rels_registry_item_fk',
+    }).onDelete('cascade'),
+    foreignKey({
       columns: [columns['things-to-do-categoryID']],
       foreignColumns: [things_to_do_category.id],
       name: '_pages_v_rels_things_to_do_category_fk',
     }).onDelete('cascade'),
-    'things-to-doIdFk': foreignKey({
+    foreignKey({
       columns: [columns['things-to-doID']],
       foreignColumns: [things_to_do.id],
       name: '_pages_v_rels_things_to_do_fk',
     }).onDelete('cascade'),
-  }),
+  ],
+);
+
+export const photo = pgTable(
+  'photo',
+  {
+    id: serial('id').primaryKey(),
+    alt: varchar('alt').notNull(),
+    folder: integer('folder_id').references(() => payload_folders.id, {
+      onDelete: 'set null',
+    }),
+    updatedAt: timestamp('updated_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+    url: varchar('url'),
+    thumbnailURL: varchar('thumbnail_u_r_l'),
+    filename: varchar('filename'),
+    mimeType: varchar('mime_type'),
+    filesize: numeric('filesize', { mode: 'number' }),
+    width: numeric('width', { mode: 'number' }),
+    height: numeric('height', { mode: 'number' }),
+    focalX: numeric('focal_x', { mode: 'number' }),
+    focalY: numeric('focal_y', { mode: 'number' }),
+  },
+  (columns) => [
+    index('photo_folder_idx').on(columns.folder),
+    index('photo_updated_at_idx').on(columns.updatedAt),
+    index('photo_created_at_idx').on(columns.createdAt),
+    uniqueIndex('photo_filename_idx').on(columns.filename),
+  ],
 );
 
 export const place_tag = pgTable(
@@ -917,15 +947,11 @@ export const place_tag = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    place_tag_slug_idx: index('place_tag_slug_idx').on(columns.slug),
-    place_tag_updated_at_idx: index('place_tag_updated_at_idx').on(
-      columns.updatedAt,
-    ),
-    place_tag_created_at_idx: index('place_tag_created_at_idx').on(
-      columns.createdAt,
-    ),
-  }),
+  (columns) => [
+    index('place_tag_slug_idx').on(columns.slug),
+    index('place_tag_updated_at_idx').on(columns.updatedAt),
+    index('place_tag_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const registry_category = pgTable(
@@ -949,34 +975,30 @@ export const registry_category = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    registry_category_slug_idx: index('registry_category_slug_idx').on(
-      columns.slug,
-    ),
-    registry_category_updated_at_idx: index(
-      'registry_category_updated_at_idx',
-    ).on(columns.updatedAt),
-    registry_category_created_at_idx: index(
-      'registry_category_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+  (columns) => [
+    index('registry_category_slug_idx').on(columns.slug),
+    index('registry_category_updated_at_idx').on(columns.updatedAt),
+    index('registry_category_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const registry_item = pgTable(
   'registry_item',
   {
     id: serial('id').primaryKey(),
-    title: varchar('title'),
+    title: varchar('title').notNull(),
     description: jsonb('description'),
     store: integer('store_id').references(() => registry_store.id, {
       onDelete: 'set null',
     }),
-    price: numeric('price'),
-    url: varchar('url'),
-    quantityRequested: numeric('quantity_requested'),
-    image: integer('image_id').references(() => media.id, {
-      onDelete: 'set null',
-    }),
+    price: numeric('price', { mode: 'number' }).notNull(),
+    url: varchar('url').notNull(),
+    quantityRequested: numeric('quantity_requested', { mode: 'number' }),
+    image: integer('image_id')
+      .notNull()
+      .references(() => media.id, {
+        onDelete: 'set null',
+      }),
     updatedAt: timestamp('updated_at', {
       mode: 'string',
       withTimezone: true,
@@ -991,21 +1013,13 @@ export const registry_item = pgTable(
     })
       .defaultNow()
       .notNull(),
-    _status: enum_registry_item_status('_status').default('draft'),
   },
-  (columns) => ({
-    registry_item_store_idx: index('registry_item_store_idx').on(columns.store),
-    registry_item_image_idx: index('registry_item_image_idx').on(columns.image),
-    registry_item_updated_at_idx: index('registry_item_updated_at_idx').on(
-      columns.updatedAt,
-    ),
-    registry_item_created_at_idx: index('registry_item_created_at_idx').on(
-      columns.createdAt,
-    ),
-    registry_item__status_idx: index('registry_item__status_idx').on(
-      columns._status,
-    ),
-  }),
+  (columns) => [
+    index('registry_item_store_idx').on(columns.store),
+    index('registry_item_image_idx').on(columns.image),
+    index('registry_item_updated_at_idx').on(columns.updatedAt),
+    index('registry_item_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const registry_item_rels = pgTable(
@@ -1017,137 +1031,24 @@ export const registry_item_rels = pgTable(
     path: varchar('path').notNull(),
     'registry-categoryID': integer('registry_category_id'),
   },
-  (columns) => ({
-    order: index('registry_item_rels_order_idx').on(columns.order),
-    parentIdx: index('registry_item_rels_parent_idx').on(columns.parent),
-    pathIdx: index('registry_item_rels_path_idx').on(columns.path),
-    registry_item_rels_registry_category_id_idx: index(
-      'registry_item_rels_registry_category_id_idx',
-    ).on(columns['registry-categoryID']),
-    parentFk: foreignKey({
+  (columns) => [
+    index('registry_item_rels_order_idx').on(columns.order),
+    index('registry_item_rels_parent_idx').on(columns.parent),
+    index('registry_item_rels_path_idx').on(columns.path),
+    index('registry_item_rels_registry_category_id_idx').on(
+      columns['registry-categoryID'],
+    ),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [registry_item.id],
       name: 'registry_item_rels_parent_fk',
     }).onDelete('cascade'),
-    'registry-categoryIdFk': foreignKey({
+    foreignKey({
       columns: [columns['registry-categoryID']],
       foreignColumns: [registry_category.id],
       name: 'registry_item_rels_registry_category_fk',
     }).onDelete('cascade'),
-  }),
-);
-
-export const _registry_item_v = pgTable(
-  '_registry_item_v',
-  {
-    id: serial('id').primaryKey(),
-    parent: integer('parent_id').references(() => registry_item.id, {
-      onDelete: 'set null',
-    }),
-    version_title: varchar('version_title'),
-    version_description: jsonb('version_description'),
-    version_store: integer('version_store_id').references(
-      () => registry_store.id,
-      {
-        onDelete: 'set null',
-      },
-    ),
-    version_price: numeric('version_price'),
-    version_url: varchar('version_url'),
-    version_quantityRequested: numeric('version_quantity_requested'),
-    version_image: integer('version_image_id').references(() => media.id, {
-      onDelete: 'set null',
-    }),
-    version_updatedAt: timestamp('version_updated_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    version_createdAt: timestamp('version_created_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }),
-    version__status:
-      enum__registry_item_v_version_status('version__status').default('draft'),
-    createdAt: timestamp('created_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    })
-      .defaultNow()
-      .notNull(),
-    latest: boolean('latest'),
-    autosave: boolean('autosave'),
-  },
-  (columns) => ({
-    _registry_item_v_parent_idx: index('_registry_item_v_parent_idx').on(
-      columns.parent,
-    ),
-    _registry_item_v_version_version_store_idx: index(
-      '_registry_item_v_version_version_store_idx',
-    ).on(columns.version_store),
-    _registry_item_v_version_version_image_idx: index(
-      '_registry_item_v_version_version_image_idx',
-    ).on(columns.version_image),
-    _registry_item_v_version_version_updated_at_idx: index(
-      '_registry_item_v_version_version_updated_at_idx',
-    ).on(columns.version_updatedAt),
-    _registry_item_v_version_version_created_at_idx: index(
-      '_registry_item_v_version_version_created_at_idx',
-    ).on(columns.version_createdAt),
-    _registry_item_v_version_version__status_idx: index(
-      '_registry_item_v_version_version__status_idx',
-    ).on(columns.version__status),
-    _registry_item_v_created_at_idx: index(
-      '_registry_item_v_created_at_idx',
-    ).on(columns.createdAt),
-    _registry_item_v_updated_at_idx: index(
-      '_registry_item_v_updated_at_idx',
-    ).on(columns.updatedAt),
-    _registry_item_v_latest_idx: index('_registry_item_v_latest_idx').on(
-      columns.latest,
-    ),
-    _registry_item_v_autosave_idx: index('_registry_item_v_autosave_idx').on(
-      columns.autosave,
-    ),
-  }),
-);
-
-export const _registry_item_v_rels = pgTable(
-  '_registry_item_v_rels',
-  {
-    id: serial('id').primaryKey(),
-    order: integer('order'),
-    parent: integer('parent_id').notNull(),
-    path: varchar('path').notNull(),
-    'registry-categoryID': integer('registry_category_id'),
-  },
-  (columns) => ({
-    order: index('_registry_item_v_rels_order_idx').on(columns.order),
-    parentIdx: index('_registry_item_v_rels_parent_idx').on(columns.parent),
-    pathIdx: index('_registry_item_v_rels_path_idx').on(columns.path),
-    _registry_item_v_rels_registry_category_id_idx: index(
-      '_registry_item_v_rels_registry_category_id_idx',
-    ).on(columns['registry-categoryID']),
-    parentFk: foreignKey({
-      columns: [columns['parent']],
-      foreignColumns: [_registry_item_v.id],
-      name: '_registry_item_v_rels_parent_fk',
-    }).onDelete('cascade'),
-    'registry-categoryIdFk': foreignKey({
-      columns: [columns['registry-categoryID']],
-      foreignColumns: [registry_category.id],
-      name: '_registry_item_v_rels_registry_category_fk',
-    }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const registry_purchase = pgTable(
@@ -1159,12 +1060,11 @@ export const registry_purchase = pgTable(
       .references(() => registry_item.id, {
         onDelete: 'set null',
       }),
-    quantity: numeric('quantity').notNull(),
+    quantity: numeric('quantity', { mode: 'number' }).notNull(),
     purchasedAt: enum_registry_purchase_purchased_at('purchased_at').notNull(),
     orderNumber: varchar('order_number'),
-    purchaserFirstName: varchar('purchaser_first_name').notNull(),
-    purchaserLastName: varchar('purchaser_last_name').notNull(),
-    purchaserEmail: varchar('purchaser_email').notNull(),
+    purchaserName: varchar('purchaser_name').notNull(),
+    purchaserEmail: varchar('purchaser_email'),
     updatedAt: timestamp('updated_at', {
       mode: 'string',
       withTimezone: true,
@@ -1180,17 +1080,11 @@ export const registry_purchase = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    registry_purchase_registry_item_idx: index(
-      'registry_purchase_registry_item_idx',
-    ).on(columns.registryItem),
-    registry_purchase_updated_at_idx: index(
-      'registry_purchase_updated_at_idx',
-    ).on(columns.updatedAt),
-    registry_purchase_created_at_idx: index(
-      'registry_purchase_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+  (columns) => [
+    index('registry_purchase_registry_item_idx').on(columns.registryItem),
+    index('registry_purchase_updated_at_idx').on(columns.updatedAt),
+    index('registry_purchase_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const registry_store = pgTable(
@@ -1214,15 +1108,11 @@ export const registry_store = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    registry_store_slug_idx: index('registry_store_slug_idx').on(columns.slug),
-    registry_store_updated_at_idx: index('registry_store_updated_at_idx').on(
-      columns.updatedAt,
-    ),
-    registry_store_created_at_idx: index('registry_store_created_at_idx').on(
-      columns.createdAt,
-    ),
-  }),
+  (columns) => [
+    index('registry_store_slug_idx').on(columns.slug),
+    index('registry_store_updated_at_idx').on(columns.updatedAt),
+    index('registry_store_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const things_to_do = pgTable(
@@ -1251,15 +1141,11 @@ export const things_to_do = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    things_to_do_image_idx: index('things_to_do_image_idx').on(columns.image),
-    things_to_do_updated_at_idx: index('things_to_do_updated_at_idx').on(
-      columns.updatedAt,
-    ),
-    things_to_do_created_at_idx: index('things_to_do_created_at_idx').on(
-      columns.createdAt,
-    ),
-  }),
+  (columns) => [
+    index('things_to_do_image_idx').on(columns.image),
+    index('things_to_do_updated_at_idx').on(columns.updatedAt),
+    index('things_to_do_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const things_to_do_rels = pgTable(
@@ -1271,24 +1157,24 @@ export const things_to_do_rels = pgTable(
     path: varchar('path').notNull(),
     'things-to-do-categoryID': integer('things_to_do_category_id'),
   },
-  (columns) => ({
-    order: index('things_to_do_rels_order_idx').on(columns.order),
-    parentIdx: index('things_to_do_rels_parent_idx').on(columns.parent),
-    pathIdx: index('things_to_do_rels_path_idx').on(columns.path),
-    things_to_do_rels_things_to_do_category_id_idx: index(
-      'things_to_do_rels_things_to_do_category_id_idx',
-    ).on(columns['things-to-do-categoryID']),
-    parentFk: foreignKey({
+  (columns) => [
+    index('things_to_do_rels_order_idx').on(columns.order),
+    index('things_to_do_rels_parent_idx').on(columns.parent),
+    index('things_to_do_rels_path_idx').on(columns.path),
+    index('things_to_do_rels_things_to_do_category_id_idx').on(
+      columns['things-to-do-categoryID'],
+    ),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [things_to_do.id],
       name: 'things_to_do_rels_parent_fk',
     }).onDelete('cascade'),
-    'things-to-do-categoryIdFk': foreignKey({
+    foreignKey({
       columns: [columns['things-to-do-categoryID']],
       foreignColumns: [things_to_do_category.id],
       name: 'things_to_do_rels_things_to_do_category_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const things_to_do_category = pgTable(
@@ -1312,17 +1198,143 @@ export const things_to_do_category = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    things_to_do_category_slug_idx: index('things_to_do_category_slug_idx').on(
-      columns.slug,
+  (columns) => [
+    index('things_to_do_category_slug_idx').on(columns.slug),
+    index('things_to_do_category_updated_at_idx').on(columns.updatedAt),
+    index('things_to_do_category_created_at_idx').on(columns.createdAt),
+  ],
+);
+
+export const users_sessions = pgTable(
+  'users_sessions',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    createdAt: timestamp('created_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }),
+    expiresAt: timestamp('expires_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }).notNull(),
+  },
+  (columns) => [
+    index('users_sessions_order_idx').on(columns._order),
+    index('users_sessions_parent_id_idx').on(columns._parentID),
+    foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [users.id],
+      name: 'users_sessions_parent_id_fk',
+    }).onDelete('cascade'),
+  ],
+);
+
+export const users = pgTable(
+  'users',
+  {
+    id: serial('id').primaryKey(),
+    updatedAt: timestamp('updated_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+    email: varchar('email').notNull(),
+    resetPasswordToken: varchar('reset_password_token'),
+    resetPasswordExpiration: timestamp('reset_password_expiration', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }),
+    salt: varchar('salt'),
+    hash: varchar('hash'),
+    loginAttempts: numeric('login_attempts', { mode: 'number' }).default(0),
+    lockUntil: timestamp('lock_until', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }),
+  },
+  (columns) => [
+    index('users_updated_at_idx').on(columns.updatedAt),
+    index('users_created_at_idx').on(columns.createdAt),
+    uniqueIndex('users_email_idx').on(columns.email),
+  ],
+);
+
+export const payload_kv = pgTable(
+  'payload_kv',
+  {
+    id: serial('id').primaryKey(),
+    key: varchar('key').notNull(),
+    data: jsonb('data').notNull(),
+  },
+  (columns) => [uniqueIndex('payload_kv_key_idx').on(columns.key)],
+);
+
+export const payload_folders_folder_type = pgTable(
+  'payload_folders_folder_type',
+  {
+    order: integer('order').notNull(),
+    parent: integer('parent_id').notNull(),
+    value: enum_payload_folders_folder_type('value'),
+    id: serial('id').primaryKey(),
+  },
+  (columns) => [
+    index('payload_folders_folder_type_order_idx').on(columns.order),
+    index('payload_folders_folder_type_parent_idx').on(columns.parent),
+    foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [payload_folders.id],
+      name: 'payload_folders_folder_type_parent_fk',
+    }).onDelete('cascade'),
+  ],
+);
+
+export const payload_folders = pgTable(
+  'payload_folders',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name').notNull(),
+    folder: integer('folder_id').references(
+      (): AnyPgColumn => payload_folders.id,
+      {
+        onDelete: 'set null',
+      },
     ),
-    things_to_do_category_updated_at_idx: index(
-      'things_to_do_category_updated_at_idx',
-    ).on(columns.updatedAt),
-    things_to_do_category_created_at_idx: index(
-      'things_to_do_category_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+    updatedAt: timestamp('updated_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => [
+    index('payload_folders_name_idx').on(columns.name),
+    index('payload_folders_folder_idx').on(columns.folder),
+    index('payload_folders_updated_at_idx').on(columns.updatedAt),
+    index('payload_folders_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const payload_locked_documents = pgTable(
@@ -1345,17 +1357,11 @@ export const payload_locked_documents = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    payload_locked_documents_global_slug_idx: index(
-      'payload_locked_documents_global_slug_idx',
-    ).on(columns.globalSlug),
-    payload_locked_documents_updated_at_idx: index(
-      'payload_locked_documents_updated_at_idx',
-    ).on(columns.updatedAt),
-    payload_locked_documents_created_at_idx: index(
-      'payload_locked_documents_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+  (columns) => [
+    index('payload_locked_documents_global_slug_idx').on(columns.globalSlug),
+    index('payload_locked_documents_updated_at_idx').on(columns.updatedAt),
+    index('payload_locked_documents_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const payload_locked_documents_rels = pgTable(
@@ -1365,9 +1371,10 @@ export const payload_locked_documents_rels = pgTable(
     order: integer('order'),
     parent: integer('parent_id').notNull(),
     path: varchar('path').notNull(),
-    usersID: integer('users_id'),
+    'honeymoon-contributionsID': integer('honeymoon_contributions_id'),
     mediaID: integer('media_id'),
     pagesID: integer('pages_id'),
+    photoID: integer('photo_id'),
     'place-tagID': integer('place_tag_id'),
     'registry-categoryID': integer('registry_category_id'),
     'registry-itemID': integer('registry_item_id'),
@@ -1375,99 +1382,115 @@ export const payload_locked_documents_rels = pgTable(
     'registry-storeID': integer('registry_store_id'),
     'things-to-doID': integer('things_to_do_id'),
     'things-to-do-categoryID': integer('things_to_do_category_id'),
+    usersID: integer('users_id'),
+    'payload-foldersID': integer('payload_folders_id'),
   },
-  (columns) => ({
-    order: index('payload_locked_documents_rels_order_idx').on(columns.order),
-    parentIdx: index('payload_locked_documents_rels_parent_idx').on(
-      columns.parent,
+  (columns) => [
+    index('payload_locked_documents_rels_order_idx').on(columns.order),
+    index('payload_locked_documents_rels_parent_idx').on(columns.parent),
+    index('payload_locked_documents_rels_path_idx').on(columns.path),
+    index('payload_locked_documents_rels_honeymoon_contributions_id_idx').on(
+      columns['honeymoon-contributionsID'],
     ),
-    pathIdx: index('payload_locked_documents_rels_path_idx').on(columns.path),
-    payload_locked_documents_rels_users_id_idx: index(
-      'payload_locked_documents_rels_users_id_idx',
-    ).on(columns.usersID),
-    payload_locked_documents_rels_media_id_idx: index(
-      'payload_locked_documents_rels_media_id_idx',
-    ).on(columns.mediaID),
-    payload_locked_documents_rels_pages_id_idx: index(
-      'payload_locked_documents_rels_pages_id_idx',
-    ).on(columns.pagesID),
-    payload_locked_documents_rels_place_tag_id_idx: index(
-      'payload_locked_documents_rels_place_tag_id_idx',
-    ).on(columns['place-tagID']),
-    payload_locked_documents_rels_registry_category_id_idx: index(
-      'payload_locked_documents_rels_registry_category_id_idx',
-    ).on(columns['registry-categoryID']),
-    payload_locked_documents_rels_registry_item_id_idx: index(
-      'payload_locked_documents_rels_registry_item_id_idx',
-    ).on(columns['registry-itemID']),
-    payload_locked_documents_rels_registry_purchase_id_idx: index(
-      'payload_locked_documents_rels_registry_purchase_id_idx',
-    ).on(columns['registry-purchaseID']),
-    payload_locked_documents_rels_registry_store_id_idx: index(
-      'payload_locked_documents_rels_registry_store_id_idx',
-    ).on(columns['registry-storeID']),
-    payload_locked_documents_rels_things_to_do_id_idx: index(
-      'payload_locked_documents_rels_things_to_do_id_idx',
-    ).on(columns['things-to-doID']),
-    payload_locked_documents_rels_things_to_do_category_id_idx: index(
-      'payload_locked_documents_rels_things_to_do_category_id_idx',
-    ).on(columns['things-to-do-categoryID']),
-    parentFk: foreignKey({
+    index('payload_locked_documents_rels_media_id_idx').on(columns.mediaID),
+    index('payload_locked_documents_rels_pages_id_idx').on(columns.pagesID),
+    index('payload_locked_documents_rels_photo_id_idx').on(columns.photoID),
+    index('payload_locked_documents_rels_place_tag_id_idx').on(
+      columns['place-tagID'],
+    ),
+    index('payload_locked_documents_rels_registry_category_id_idx').on(
+      columns['registry-categoryID'],
+    ),
+    index('payload_locked_documents_rels_registry_item_id_idx').on(
+      columns['registry-itemID'],
+    ),
+    index('payload_locked_documents_rels_registry_purchase_id_idx').on(
+      columns['registry-purchaseID'],
+    ),
+    index('payload_locked_documents_rels_registry_store_id_idx').on(
+      columns['registry-storeID'],
+    ),
+    index('payload_locked_documents_rels_things_to_do_id_idx').on(
+      columns['things-to-doID'],
+    ),
+    index('payload_locked_documents_rels_things_to_do_category_id_idx').on(
+      columns['things-to-do-categoryID'],
+    ),
+    index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
+    index('payload_locked_documents_rels_payload_folders_id_idx').on(
+      columns['payload-foldersID'],
+    ),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
       name: 'payload_locked_documents_rels_parent_fk',
     }).onDelete('cascade'),
-    usersIdFk: foreignKey({
-      columns: [columns['usersID']],
-      foreignColumns: [users.id],
-      name: 'payload_locked_documents_rels_users_fk',
+    foreignKey({
+      columns: [columns['honeymoon-contributionsID']],
+      foreignColumns: [honeymoon_contributions.id],
+      name: 'payload_locked_documents_rels_honeymoon_contributions_fk',
     }).onDelete('cascade'),
-    mediaIdFk: foreignKey({
+    foreignKey({
       columns: [columns['mediaID']],
       foreignColumns: [media.id],
       name: 'payload_locked_documents_rels_media_fk',
     }).onDelete('cascade'),
-    pagesIdFk: foreignKey({
+    foreignKey({
       columns: [columns['pagesID']],
       foreignColumns: [pages.id],
       name: 'payload_locked_documents_rels_pages_fk',
     }).onDelete('cascade'),
-    'place-tagIdFk': foreignKey({
+    foreignKey({
+      columns: [columns['photoID']],
+      foreignColumns: [photo.id],
+      name: 'payload_locked_documents_rels_photo_fk',
+    }).onDelete('cascade'),
+    foreignKey({
       columns: [columns['place-tagID']],
       foreignColumns: [place_tag.id],
       name: 'payload_locked_documents_rels_place_tag_fk',
     }).onDelete('cascade'),
-    'registry-categoryIdFk': foreignKey({
+    foreignKey({
       columns: [columns['registry-categoryID']],
       foreignColumns: [registry_category.id],
       name: 'payload_locked_documents_rels_registry_category_fk',
     }).onDelete('cascade'),
-    'registry-itemIdFk': foreignKey({
+    foreignKey({
       columns: [columns['registry-itemID']],
       foreignColumns: [registry_item.id],
       name: 'payload_locked_documents_rels_registry_item_fk',
     }).onDelete('cascade'),
-    'registry-purchaseIdFk': foreignKey({
+    foreignKey({
       columns: [columns['registry-purchaseID']],
       foreignColumns: [registry_purchase.id],
       name: 'payload_locked_documents_rels_registry_purchase_fk',
     }).onDelete('cascade'),
-    'registry-storeIdFk': foreignKey({
+    foreignKey({
       columns: [columns['registry-storeID']],
       foreignColumns: [registry_store.id],
       name: 'payload_locked_documents_rels_registry_store_fk',
     }).onDelete('cascade'),
-    'things-to-doIdFk': foreignKey({
+    foreignKey({
       columns: [columns['things-to-doID']],
       foreignColumns: [things_to_do.id],
       name: 'payload_locked_documents_rels_things_to_do_fk',
     }).onDelete('cascade'),
-    'things-to-do-categoryIdFk': foreignKey({
+    foreignKey({
       columns: [columns['things-to-do-categoryID']],
       foreignColumns: [things_to_do_category.id],
       name: 'payload_locked_documents_rels_things_to_do_category_fk',
     }).onDelete('cascade'),
-  }),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'payload_locked_documents_rels_users_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['payload-foldersID']],
+      foreignColumns: [payload_folders.id],
+      name: 'payload_locked_documents_rels_payload_folders_fk',
+    }).onDelete('cascade'),
+  ],
 );
 
 export const payload_preferences = pgTable(
@@ -1491,17 +1514,11 @@ export const payload_preferences = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    payload_preferences_key_idx: index('payload_preferences_key_idx').on(
-      columns.key,
-    ),
-    payload_preferences_updated_at_idx: index(
-      'payload_preferences_updated_at_idx',
-    ).on(columns.updatedAt),
-    payload_preferences_created_at_idx: index(
-      'payload_preferences_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+  (columns) => [
+    index('payload_preferences_key_idx').on(columns.key),
+    index('payload_preferences_updated_at_idx').on(columns.updatedAt),
+    index('payload_preferences_created_at_idx').on(columns.createdAt),
+  ],
 );
 
 export const payload_preferences_rels = pgTable(
@@ -1513,24 +1530,22 @@ export const payload_preferences_rels = pgTable(
     path: varchar('path').notNull(),
     usersID: integer('users_id'),
   },
-  (columns) => ({
-    order: index('payload_preferences_rels_order_idx').on(columns.order),
-    parentIdx: index('payload_preferences_rels_parent_idx').on(columns.parent),
-    pathIdx: index('payload_preferences_rels_path_idx').on(columns.path),
-    payload_preferences_rels_users_id_idx: index(
-      'payload_preferences_rels_users_id_idx',
-    ).on(columns.usersID),
-    parentFk: foreignKey({
+  (columns) => [
+    index('payload_preferences_rels_order_idx').on(columns.order),
+    index('payload_preferences_rels_parent_idx').on(columns.parent),
+    index('payload_preferences_rels_path_idx').on(columns.path),
+    index('payload_preferences_rels_users_id_idx').on(columns.usersID),
+    foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_preferences.id],
       name: 'payload_preferences_rels_parent_fk',
     }).onDelete('cascade'),
-    usersIdFk: foreignKey({
+    foreignKey({
       columns: [columns['usersID']],
       foreignColumns: [users.id],
       name: 'payload_preferences_rels_users_fk',
     }).onDelete('cascade'),
-  }),
+  ],
 );
 
 export const payload_migrations = pgTable(
@@ -1538,7 +1553,7 @@ export const payload_migrations = pgTable(
   {
     id: serial('id').primaryKey(),
     name: varchar('name'),
-    batch: numeric('batch'),
+    batch: numeric('batch', { mode: 'number' }),
     updatedAt: timestamp('updated_at', {
       mode: 'string',
       withTimezone: true,
@@ -1554,17 +1569,16 @@ export const payload_migrations = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (columns) => ({
-    payload_migrations_updated_at_idx: index(
-      'payload_migrations_updated_at_idx',
-    ).on(columns.updatedAt),
-    payload_migrations_created_at_idx: index(
-      'payload_migrations_created_at_idx',
-    ).on(columns.createdAt),
-  }),
+  (columns) => [
+    index('payload_migrations_updated_at_idx').on(columns.updatedAt),
+    index('payload_migrations_created_at_idx').on(columns.createdAt),
+  ],
 );
 
-export const relations_users = relations(users, () => ({}));
+export const relations_honeymoon_contributions = relations(
+  honeymoon_contributions,
+  () => ({}),
+);
 export const relations_media = relations(media, () => ({}));
 export const relations_pages_blocks_accordion_items = relations(
   pages_blocks_accordion_items,
@@ -1619,6 +1633,16 @@ export const relations_pages_blocks_content = relations(
     }),
     columns: many(pages_blocks_content_columns, {
       relationName: 'columns',
+    }),
+  }),
+);
+export const relations_pages_blocks_photo_gallery = relations(
+  pages_blocks_photo_gallery,
+  ({ one }) => ({
+    _parentID: one(pages, {
+      fields: [pages_blocks_photo_gallery._parentID],
+      references: [pages.id],
+      relationName: '_blocks_photo-gallery',
     }),
   }),
 );
@@ -1701,6 +1725,11 @@ export const relations_pages_rels = relations(pages_rels, ({ one }) => ({
     references: [place_tag.id],
     relationName: 'place-tag',
   }),
+  'registry-itemID': one(registry_item, {
+    fields: [pages_rels['registry-itemID']],
+    references: [registry_item.id],
+    relationName: 'registry-item',
+  }),
   'things-to-do-categoryID': one(things_to_do_category, {
     fields: [pages_rels['things-to-do-categoryID']],
     references: [things_to_do_category.id],
@@ -1721,6 +1750,9 @@ export const relations_pages = relations(pages, ({ many }) => ({
   }),
   _blocks_content: many(pages_blocks_content, {
     relationName: '_blocks_content',
+  }),
+  '_blocks_photo-gallery': many(pages_blocks_photo_gallery, {
+    relationName: '_blocks_photo-gallery',
   }),
   _blocks_place: many(pages_blocks_place, {
     relationName: '_blocks_place',
@@ -1794,6 +1826,16 @@ export const relations__pages_v_blocks_content = relations(
     }),
     columns: many(_pages_v_blocks_content_columns, {
       relationName: 'columns',
+    }),
+  }),
+);
+export const relations__pages_v_blocks_photo_gallery = relations(
+  _pages_v_blocks_photo_gallery,
+  ({ one }) => ({
+    _parentID: one(_pages_v, {
+      fields: [_pages_v_blocks_photo_gallery._parentID],
+      references: [_pages_v.id],
+      relationName: '_blocks_photo-gallery',
     }),
   }),
 );
@@ -1876,6 +1918,11 @@ export const relations__pages_v_rels = relations(_pages_v_rels, ({ one }) => ({
     references: [place_tag.id],
     relationName: 'place-tag',
   }),
+  'registry-itemID': one(registry_item, {
+    fields: [_pages_v_rels['registry-itemID']],
+    references: [registry_item.id],
+    relationName: 'registry-item',
+  }),
   'things-to-do-categoryID': one(things_to_do_category, {
     fields: [_pages_v_rels['things-to-do-categoryID']],
     references: [things_to_do_category.id],
@@ -1902,6 +1949,9 @@ export const relations__pages_v = relations(_pages_v, ({ one, many }) => ({
   _blocks_content: many(_pages_v_blocks_content, {
     relationName: '_blocks_content',
   }),
+  '_blocks_photo-gallery': many(_pages_v_blocks_photo_gallery, {
+    relationName: '_blocks_photo-gallery',
+  }),
   _blocks_place: many(_pages_v_blocks_place, {
     relationName: '_blocks_place',
   }),
@@ -1919,6 +1969,13 @@ export const relations__pages_v = relations(_pages_v, ({ one, many }) => ({
   }),
   _rels: many(_pages_v_rels, {
     relationName: '_rels',
+  }),
+}));
+export const relations_photo = relations(photo, ({ one }) => ({
+  folder: one(payload_folders, {
+    fields: [photo.folder],
+    references: [payload_folders.id],
+    relationName: 'folder',
   }),
 }));
 export const relations_place_tag = relations(place_tag, () => ({}));
@@ -1955,44 +2012,6 @@ export const relations_registry_item = relations(
       relationName: 'image',
     }),
     _rels: many(registry_item_rels, {
-      relationName: '_rels',
-    }),
-  }),
-);
-export const relations__registry_item_v_rels = relations(
-  _registry_item_v_rels,
-  ({ one }) => ({
-    parent: one(_registry_item_v, {
-      fields: [_registry_item_v_rels.parent],
-      references: [_registry_item_v.id],
-      relationName: '_rels',
-    }),
-    'registry-categoryID': one(registry_category, {
-      fields: [_registry_item_v_rels['registry-categoryID']],
-      references: [registry_category.id],
-      relationName: 'registry-category',
-    }),
-  }),
-);
-export const relations__registry_item_v = relations(
-  _registry_item_v,
-  ({ one, many }) => ({
-    parent: one(registry_item, {
-      fields: [_registry_item_v.parent],
-      references: [registry_item.id],
-      relationName: 'parent',
-    }),
-    version_store: one(registry_store, {
-      fields: [_registry_item_v.version_store],
-      references: [registry_store.id],
-      relationName: 'version_store',
-    }),
-    version_image: one(media, {
-      fields: [_registry_item_v.version_image],
-      references: [media.id],
-      relationName: 'version_image',
-    }),
-    _rels: many(_registry_item_v_rels, {
       relationName: '_rels',
     }),
   }),
@@ -2040,6 +2059,45 @@ export const relations_things_to_do_category = relations(
   things_to_do_category,
   () => ({}),
 );
+export const relations_users_sessions = relations(
+  users_sessions,
+  ({ one }) => ({
+    _parentID: one(users, {
+      fields: [users_sessions._parentID],
+      references: [users.id],
+      relationName: 'sessions',
+    }),
+  }),
+);
+export const relations_users = relations(users, ({ many }) => ({
+  sessions: many(users_sessions, {
+    relationName: 'sessions',
+  }),
+}));
+export const relations_payload_kv = relations(payload_kv, () => ({}));
+export const relations_payload_folders_folder_type = relations(
+  payload_folders_folder_type,
+  ({ one }) => ({
+    parent: one(payload_folders, {
+      fields: [payload_folders_folder_type.parent],
+      references: [payload_folders.id],
+      relationName: 'folderType',
+    }),
+  }),
+);
+export const relations_payload_folders = relations(
+  payload_folders,
+  ({ one, many }) => ({
+    folder: one(payload_folders, {
+      fields: [payload_folders.folder],
+      references: [payload_folders.id],
+      relationName: 'folder',
+    }),
+    folderType: many(payload_folders_folder_type, {
+      relationName: 'folderType',
+    }),
+  }),
+);
 export const relations_payload_locked_documents_rels = relations(
   payload_locked_documents_rels,
   ({ one }) => ({
@@ -2048,10 +2106,10 @@ export const relations_payload_locked_documents_rels = relations(
       references: [payload_locked_documents.id],
       relationName: '_rels',
     }),
-    usersID: one(users, {
-      fields: [payload_locked_documents_rels.usersID],
-      references: [users.id],
-      relationName: 'users',
+    'honeymoon-contributionsID': one(honeymoon_contributions, {
+      fields: [payload_locked_documents_rels['honeymoon-contributionsID']],
+      references: [honeymoon_contributions.id],
+      relationName: 'honeymoon-contributions',
     }),
     mediaID: one(media, {
       fields: [payload_locked_documents_rels.mediaID],
@@ -2062,6 +2120,11 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.pagesID],
       references: [pages.id],
       relationName: 'pages',
+    }),
+    photoID: one(photo, {
+      fields: [payload_locked_documents_rels.photoID],
+      references: [photo.id],
+      relationName: 'photo',
     }),
     'place-tagID': one(place_tag, {
       fields: [payload_locked_documents_rels['place-tagID']],
@@ -2097,6 +2160,16 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels['things-to-do-categoryID']],
       references: [things_to_do_category.id],
       relationName: 'things-to-do-category',
+    }),
+    usersID: one(users, {
+      fields: [payload_locked_documents_rels.usersID],
+      references: [users.id],
+      relationName: 'users',
+    }),
+    'payload-foldersID': one(payload_folders, {
+      fields: [payload_locked_documents_rels['payload-foldersID']],
+      references: [payload_folders.id],
+      relationName: 'payload-folders',
     }),
   }),
 );
@@ -2137,22 +2210,25 @@ export const relations_payload_migrations = relations(
 );
 
 type DatabaseSchema = {
+  enum_honeymoon_contributions_status: typeof enum_honeymoon_contributions_status;
   enum_pages_blocks_content_columns_size: typeof enum_pages_blocks_content_columns_size;
+  enum_pages_blocks_photo_gallery_folder: typeof enum_pages_blocks_photo_gallery_folder;
   enum_pages_blocks_stack_direction: typeof enum_pages_blocks_stack_direction;
   enum_pages_status: typeof enum_pages_status;
   enum__pages_v_blocks_content_columns_size: typeof enum__pages_v_blocks_content_columns_size;
+  enum__pages_v_blocks_photo_gallery_folder: typeof enum__pages_v_blocks_photo_gallery_folder;
   enum__pages_v_blocks_stack_direction: typeof enum__pages_v_blocks_stack_direction;
   enum__pages_v_version_status: typeof enum__pages_v_version_status;
-  enum_registry_item_status: typeof enum_registry_item_status;
-  enum__registry_item_v_version_status: typeof enum__registry_item_v_version_status;
   enum_registry_purchase_purchased_at: typeof enum_registry_purchase_purchased_at;
-  users: typeof users;
+  enum_payload_folders_folder_type: typeof enum_payload_folders_folder_type;
+  honeymoon_contributions: typeof honeymoon_contributions;
   media: typeof media;
   pages_blocks_accordion_items: typeof pages_blocks_accordion_items;
   pages_blocks_accordion: typeof pages_blocks_accordion;
   pages_blocks_card: typeof pages_blocks_card;
   pages_blocks_content_columns: typeof pages_blocks_content_columns;
   pages_blocks_content: typeof pages_blocks_content;
+  pages_blocks_photo_gallery: typeof pages_blocks_photo_gallery;
   pages_blocks_place: typeof pages_blocks_place;
   pages_blocks_registry: typeof pages_blocks_registry;
   pages_blocks_schedule_events: typeof pages_blocks_schedule_events;
@@ -2166,6 +2242,7 @@ type DatabaseSchema = {
   _pages_v_blocks_card: typeof _pages_v_blocks_card;
   _pages_v_blocks_content_columns: typeof _pages_v_blocks_content_columns;
   _pages_v_blocks_content: typeof _pages_v_blocks_content;
+  _pages_v_blocks_photo_gallery: typeof _pages_v_blocks_photo_gallery;
   _pages_v_blocks_place: typeof _pages_v_blocks_place;
   _pages_v_blocks_registry: typeof _pages_v_blocks_registry;
   _pages_v_blocks_schedule_events: typeof _pages_v_blocks_schedule_events;
@@ -2174,29 +2251,34 @@ type DatabaseSchema = {
   _pages_v_blocks_things_to_do: typeof _pages_v_blocks_things_to_do;
   _pages_v: typeof _pages_v;
   _pages_v_rels: typeof _pages_v_rels;
+  photo: typeof photo;
   place_tag: typeof place_tag;
   registry_category: typeof registry_category;
   registry_item: typeof registry_item;
   registry_item_rels: typeof registry_item_rels;
-  _registry_item_v: typeof _registry_item_v;
-  _registry_item_v_rels: typeof _registry_item_v_rels;
   registry_purchase: typeof registry_purchase;
   registry_store: typeof registry_store;
   things_to_do: typeof things_to_do;
   things_to_do_rels: typeof things_to_do_rels;
   things_to_do_category: typeof things_to_do_category;
+  users_sessions: typeof users_sessions;
+  users: typeof users;
+  payload_kv: typeof payload_kv;
+  payload_folders_folder_type: typeof payload_folders_folder_type;
+  payload_folders: typeof payload_folders;
   payload_locked_documents: typeof payload_locked_documents;
   payload_locked_documents_rels: typeof payload_locked_documents_rels;
   payload_preferences: typeof payload_preferences;
   payload_preferences_rels: typeof payload_preferences_rels;
   payload_migrations: typeof payload_migrations;
-  relations_users: typeof relations_users;
+  relations_honeymoon_contributions: typeof relations_honeymoon_contributions;
   relations_media: typeof relations_media;
   relations_pages_blocks_accordion_items: typeof relations_pages_blocks_accordion_items;
   relations_pages_blocks_accordion: typeof relations_pages_blocks_accordion;
   relations_pages_blocks_card: typeof relations_pages_blocks_card;
   relations_pages_blocks_content_columns: typeof relations_pages_blocks_content_columns;
   relations_pages_blocks_content: typeof relations_pages_blocks_content;
+  relations_pages_blocks_photo_gallery: typeof relations_pages_blocks_photo_gallery;
   relations_pages_blocks_place: typeof relations_pages_blocks_place;
   relations_pages_blocks_registry: typeof relations_pages_blocks_registry;
   relations_pages_blocks_schedule_events: typeof relations_pages_blocks_schedule_events;
@@ -2210,6 +2292,7 @@ type DatabaseSchema = {
   relations__pages_v_blocks_card: typeof relations__pages_v_blocks_card;
   relations__pages_v_blocks_content_columns: typeof relations__pages_v_blocks_content_columns;
   relations__pages_v_blocks_content: typeof relations__pages_v_blocks_content;
+  relations__pages_v_blocks_photo_gallery: typeof relations__pages_v_blocks_photo_gallery;
   relations__pages_v_blocks_place: typeof relations__pages_v_blocks_place;
   relations__pages_v_blocks_registry: typeof relations__pages_v_blocks_registry;
   relations__pages_v_blocks_schedule_events: typeof relations__pages_v_blocks_schedule_events;
@@ -2218,17 +2301,21 @@ type DatabaseSchema = {
   relations__pages_v_blocks_things_to_do: typeof relations__pages_v_blocks_things_to_do;
   relations__pages_v_rels: typeof relations__pages_v_rels;
   relations__pages_v: typeof relations__pages_v;
+  relations_photo: typeof relations_photo;
   relations_place_tag: typeof relations_place_tag;
   relations_registry_category: typeof relations_registry_category;
   relations_registry_item_rels: typeof relations_registry_item_rels;
   relations_registry_item: typeof relations_registry_item;
-  relations__registry_item_v_rels: typeof relations__registry_item_v_rels;
-  relations__registry_item_v: typeof relations__registry_item_v;
   relations_registry_purchase: typeof relations_registry_purchase;
   relations_registry_store: typeof relations_registry_store;
   relations_things_to_do_rels: typeof relations_things_to_do_rels;
   relations_things_to_do: typeof relations_things_to_do;
   relations_things_to_do_category: typeof relations_things_to_do_category;
+  relations_users_sessions: typeof relations_users_sessions;
+  relations_users: typeof relations_users;
+  relations_payload_kv: typeof relations_payload_kv;
+  relations_payload_folders_folder_type: typeof relations_payload_folders_folder_type;
+  relations_payload_folders: typeof relations_payload_folders;
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels;
   relations_payload_locked_documents: typeof relations_payload_locked_documents;
   relations_payload_preferences_rels: typeof relations_payload_preferences_rels;

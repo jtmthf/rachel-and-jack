@@ -1,4 +1,5 @@
 import { Content } from '@/blocks/Content/config';
+import { PhotoGallery } from '@/blocks/PhotoGallery/config';
 import { Place } from '@/blocks/Place/config';
 import { Registry } from '@/blocks/Registry/config';
 import { Schedule } from '@/blocks/Schedule/config';
@@ -128,6 +129,7 @@ export const Pages: CollectionConfig = {
       blocks: [
         CardBlock,
         Content,
+        PhotoGallery,
         Place,
         Registry,
         Schedule,

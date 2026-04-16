@@ -2,6 +2,7 @@ import {
   AccordionBlock as AccordionBlockProps,
   CardBlock as CardBlockProps,
   ContentBlock as ContentBlockProps,
+  PhotoGalleryBlock as PhotoGalleryBlockProps,
   PlaceBlock as PlaceBlockProps,
   RegistryBlock as RegistryBlockProps,
   ScheduleBlock as ScheduleBlockProps,
@@ -11,6 +12,7 @@ import {
 import AccordionBlock from './Accordion/Component';
 import CardBlock from './Card/Component';
 import ContentBlock from './Content/Component';
+import PhotoGalleryBlock from './PhotoGallery/Component';
 import PlaceBlock from './Place/Component';
 import RegistryBlock from './Registry/Component';
 import ScheduleBlock from './Schedule/Component';
@@ -21,6 +23,7 @@ const blockComponents = {
   accordion: AccordionBlock,
   card: CardBlock,
   content: ContentBlock,
+  ['photo-gallery']: PhotoGalleryBlock,
   place: PlaceBlock,
   registry: RegistryBlock,
   schedule: ScheduleBlock,
@@ -37,6 +40,7 @@ type Props = BaseBlockProps & {
     | AccordionBlockProps
     | CardBlockProps
     | ContentBlockProps
+    | PhotoGalleryBlockProps
     | PlaceBlockProps
     | RegistryBlockProps
     | ScheduleBlockProps

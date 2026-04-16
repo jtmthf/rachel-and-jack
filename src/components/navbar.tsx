@@ -1,5 +1,13 @@
 'use client';
 
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Menu } from 'lucide-react';
@@ -29,12 +37,27 @@ const baskerville = Baskervville_SC({
   display: 'swap',
 });
 
-type Props = {
-  items: Array<{
-    title: string;
-    href: string;
-  }>;
+type NavChild = {
+  title: string;
+  href: string;
+  id?: string | null;
 };
+
+type NavItem = {
+  title: string;
+  href?: string | null;
+  children?: NavChild[] | null;
+  id?: string | null;
+};
+
+type Props = {
+  items: NavItem[];
+};
+
+const linkClassName = cn(
+  'hover:text-primary text-2xl font-light tracking-wider transition-colors',
+  baskerville.className,
+);
 
 export function Navbar({ items }: Props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,29 +78,59 @@ export function Navbar({ items }: Props) {
             >
               <span className="mr-8 text-4xl">R&J</span>
             </Link>
-            <div className="ml-auto hidden gap-8 md:flex">
-              {items.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className={cn(
-                    'hover:text-primary text-2xl font-light tracking-wider transition-colors',
-                    baskerville.className,
-                  )}
-                >
-                  {item.title}
-                </Link>
-              ))}
-            </div>
+
+            {/* Desktop nav */}
+            <NavigationMenu
+              className="ml-auto hidden md:flex"
+              delayDuration={0}
+            >
+              <NavigationMenuList className="gap-8 space-x-0">
+                {items.map((item) =>
+                  item.children && item.children.length > 0 ? (
+                    <NavigationMenuItem
+                      key={item.id ?? item.title}
+                      className="relative"
+                    >
+                      <NavigationMenuTrigger
+                        className={cn(
+                          linkClassName,
+                          'data-[state=open]:text-foreground h-auto bg-transparent p-0 hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent',
+                        )}
+                      >
+                        {item.title}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="flex w-36 flex-col gap-2 p-3">
+                          {item.children.map((child) => (
+                            <li key={child.id ?? child.href}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={child.href}
+                                  className={cn(linkClassName, 'text-xl')}
+                                >
+                                  {child.title}
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  ) : (
+                    <NavigationMenuItem key={item.id ?? item.title}>
+                      <NavigationMenuLink asChild>
+                        <Link href={item.href ?? '#'} className={linkClassName}>
+                          {item.title}
+                        </Link>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  ),
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
-          {/* <div className="ml-auto hidden md:flex">
-          <Link
-            href="/rsvp"
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            RSVP
-          </Link>
-        </div> */}
+
+          {/* Mobile nav trigger */}
           <div className="ml-auto flex md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -94,27 +147,50 @@ export function Navbar({ items }: Props) {
                   </SheetHeader>
                 </VisuallyHidden>
                 <nav className="mt-4 flex flex-col space-y-6">
-                  {items.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      className={cn(
-                        'hover:text-primary text-xl tracking-wider transition-colors',
-                        baskerville.className,
-                      )}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.title}
-                    </Link>
-                  ))}
-                  {/* <Separator />
-                <Link
-                  href="/rsvp"
-                  className="text-sm font-medium transition-colors hover:text-primary"
-                  onClick={() => setIsOpen(false)}
-                >
-                  RSVP
-                </Link> */}
+                  {items.map((item) =>
+                    item.children && item.children.length > 0 ? (
+                      <div
+                        key={item.id ?? item.title}
+                        className="flex flex-col gap-3"
+                      >
+                        <span
+                          className={cn(
+                            'text-xl tracking-wider',
+                            baskerville.className,
+                          )}
+                        >
+                          {item.title}
+                        </span>
+                        <div className="ml-4 flex flex-col gap-3">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.id ?? child.href}
+                              href={child.href}
+                              onClick={() => setIsOpen(false)}
+                              className={cn(
+                                'hover:text-primary text-lg tracking-wider transition-colors',
+                                baskerville.className,
+                              )}
+                            >
+                              {child.title}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        key={item.id ?? item.title}
+                        href={item.href ?? '#'}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          'hover:text-primary text-xl tracking-wider transition-colors',
+                          baskerville.className,
+                        )}
+                      >
+                        {item.title}
+                      </Link>
+                    ),
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
