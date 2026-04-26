@@ -20,13 +20,15 @@ const REMOTE_PATTERNS = [
   // Add your allowed remote patterns here
 ];
 
-const MAX_WIDTH = 3840;
+const MAX_WIDTH = 2048;
 const MIN_WIDTH = 16;
 const DEFAULT_QUALITY = 75;
 const ALLOWED_WIDTHS = [
-  16, 32, 48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048,
-  3840,
+  16, 32, 48, 64, 96, 128, 256, 384, 640, 828, 1080, 1280, 1600, 2048,
 ];
+// AVIF encoding time grows superlinearly with pixel count; above this width,
+// fall back to WebP so modal loads don't spend 30s+ in libaom on a cold function.
+const AVIF_MAX_WIDTH = 1536;
 
 // Security: Validate URL against remote patterns
 function isAllowedRemoteUrl(url: string): boolean {
@@ -79,19 +81,17 @@ function parseS3Url(url: string): { bucket: string; key: string } | null {
   }
 }
 
-// Get optimal image format based on Accept header
-function getOptimalFormat(acceptHeader: string | undefined): string {
+function getOptimalFormat(
+  acceptHeader: string | undefined,
+  width: number,
+): string {
   if (!acceptHeader) return 'webp';
 
   const accept = acceptHeader.toLowerCase();
 
-  // AVIF has best compression but less browser support
-  if (accept.includes('image/avif')) return 'avif';
-
-  // WebP has good compression and wide support
+  if (width <= AVIF_MAX_WIDTH && accept.includes('image/avif')) return 'avif';
   if (accept.includes('image/webp')) return 'webp';
 
-  // Fallback to JPEG
   return 'jpeg';
 }
 
@@ -174,7 +174,7 @@ app.get('/', async (c) => {
 
     // Determine optimal format
     const acceptHeader = c.req.header('Accept');
-    const format = getOptimalFormat(acceptHeader);
+    const format = getOptimalFormat(acceptHeader, width);
 
     // Fetch image stream
     const imageStream = await fetchImageStream(src);
@@ -193,7 +193,7 @@ app.get('/', async (c) => {
     let contentType: string;
     switch (format) {
       case 'avif':
-        transformer = transformer.avif({ quality });
+        transformer = transformer.avif({ quality, effort: 2 });
         contentType = 'image/avif';
         break;
       case 'webp':

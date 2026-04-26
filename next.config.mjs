@@ -7,6 +7,7 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   images: {
     formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 828, 1080, 1280, 1600, 2048],
   },
   experimental: {
     serverActions: {
