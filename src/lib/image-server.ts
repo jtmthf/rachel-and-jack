@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 import sharp from 'sharp';
 import { Readable } from 'stream';
+import { resolveImageSource, type RemotePattern } from './image-source';
 
 export const app = new Hono().basePath('/api/image');
 const s3Client = new S3Client({
@@ -14,11 +15,9 @@ const s3Client = new S3Client({
 });
 
 // Configuration
-const REMOTE_PATTERNS = [
-  { protocol: 'https', hostname: 'images.example.com' },
-  { protocol: 'https', hostname: '**.example.com' },
-  // Add your allowed remote patterns here
-];
+// Hosts this route may fetch images from, besides our S3 bucket. For example:
+// { protocol: 'https', hostname: '**.example.com' }
+const REMOTE_PATTERNS: RemotePattern[] = [];
 
 const MAX_WIDTH = 2048;
 const MIN_WIDTH = 16;
@@ -29,57 +28,6 @@ const ALLOWED_WIDTHS = [
 // AVIF encoding time grows superlinearly with pixel count; above this width,
 // fall back to WebP so modal loads don't spend 30s+ in libaom on a cold function.
 const AVIF_MAX_WIDTH = 1536;
-
-// Security: Validate URL against remote patterns
-function isAllowedRemoteUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-
-    return REMOTE_PATTERNS.some((pattern) => {
-      const protocolMatch =
-        pattern.protocol === parsed.protocol.replace(':', '');
-
-      if (pattern.hostname.startsWith('**')) {
-        const domain = pattern.hostname.replace('**.', '');
-        return protocolMatch && parsed.hostname.endsWith(domain);
-      }
-
-      return protocolMatch && pattern.hostname === parsed.hostname;
-    });
-  } catch {
-    return false;
-  }
-}
-
-// Check if URL is an S3 URL
-function parseS3Url(url: string): { bucket: string; key: string } | null {
-  try {
-    const parsed = new URL(url);
-
-    // s3://bucket/key format
-    if (parsed.protocol === 's3:') {
-      return {
-        bucket: parsed.hostname,
-        key: parsed.pathname.slice(1),
-      };
-    }
-
-    // https://bucket.s3.region.amazonaws.com/key format
-    const s3Match = parsed.hostname.match(
-      /^(.+)\.s3\.([^.]+)\.amazonaws\.com$/,
-    );
-    if (s3Match) {
-      return {
-        bucket: s3Match[1],
-        key: parsed.pathname.slice(1),
-      };
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 function getOptimalFormat(
   acceptHeader: string | undefined,
@@ -97,13 +45,21 @@ function getOptimalFormat(
 
 // Fetch image stream from URL or S3
 async function fetchImageStream(src: string): Promise<Readable> {
-  const s3Params = parseS3Url(src);
+  const source = resolveImageSource(src, {
+    // The client builds image URLs from this same variable.
+    bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+    remotePatterns: REMOTE_PATTERNS,
+  });
 
-  if (s3Params) {
+  if (!source) {
+    throw new Error('Image source not allowed');
+  }
+
+  if (source.kind === 's3') {
     // Fetch from S3
     const command = new GetObjectCommand({
-      Bucket: s3Params.bucket,
-      Key: s3Params.key,
+      Bucket: source.bucket,
+      Key: source.key,
     });
 
     const response = await s3Client.send(command);
@@ -114,12 +70,8 @@ async function fetchImageStream(src: string): Promise<Readable> {
 
     return response.Body as Readable;
   } else {
-    // Fetch from remote URL
-    if (!isAllowedRemoteUrl(src)) {
-      throw new Error('Remote URL not allowed');
-    }
-
-    const response = await fetch(src);
+    // Fetch from remote URL. A redirect could leave the allowlist, so refuse it.
+    const response = await fetch(source.url, { redirect: 'error' });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.status}`);
