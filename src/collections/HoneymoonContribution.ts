@@ -4,7 +4,7 @@ export const HoneymoonContribution: CollectionConfig = {
   slug: 'honeymoon-contributions',
   access: {
     read: ({ req }) => Boolean(req.user),
-    create: () => true,
+    create: ({ req }) => Boolean(req.user),
   },
   admin: {
     useAsTitle: 'name',
