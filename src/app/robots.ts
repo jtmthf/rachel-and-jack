@@ -1,4 +1,4 @@
-import { SITE_ORIGIN } from '@/lib/contants';
+import { getServerSideURL } from '@/lib/get-url';
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
+    sitemap: `${getServerSideURL()}/sitemap.xml`,
   };
 }

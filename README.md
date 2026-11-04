@@ -1,44 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with
-[`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Rachel & Jack
 
-## Getting Started
+The website for Rachel and Jack's wedding on September 6, 2025. It now stays up
+as a read-only keepsake, and the code is here for anyone who wants to fork it
+for their own wedding.
 
-First, run the development server:
+It has a photo gallery, pages managed in a CMS, a gift registry and a honeymoon
+fund.
+
+## Stack
+
+- [Next.js](https://nextjs.org) App Router, deployed on Vercel
+- [Payload CMS](https://payloadcms.com) on Postgres, with its admin at `/admin`
+- S3 for gallery photos, resized on request by `/api/image` with
+  [sharp](https://sharp.pixelplumbing.com)
+- Vercel Blob for other media uploads
+- [Stripe](https://stripe.com) for the Honeymoon Fund
+- Mixpanel for analytics and Sentry for error reporting
+
+`GLOSSARY.md` defines the terms used in the code, such as the difference between
+a Registry Purchase and a Honeymoon Contribution.
+
+## Run it locally
+
+You need Node 24, pnpm and a Postgres database.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the
-result.
+In `.env.local`, set `DATABASE_URL` to your database and `PAYLOAD_SECRET` to a
+random string, for example from `openssl rand -hex 32`. Nothing else is needed
+to start. Then create the tables and start the site:
 
-You can start editing the page by modifying `app/page.tsx`. The page
-auto-updates as you edit the file.
+```bash
+pnpm payload migrate
+pnpm dev
+```
 
-## Learn More
+Open [localhost:3000](http://localhost:3000) for the site and
+[localhost:3000/admin](http://localhost:3000/admin) to create your first admin
+user.
 
-To learn more about Next.js, take a look at the following resources:
+`pnpm test` runs the unit tests.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Make it yours
 
-You can check out
-[the Next.js GitHub repository](https://github.com/vercel/next.js) - your
-feedback and contributions are welcome!
+Replace the personal content before you publish:
 
-## Deploy on Vercel
+| What                                    | Where                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| Names, date, venue, honeymoon location  | `src/site.config.ts`                                                     |
+| The story                               | `src/app/(frontend)/our-story/page.mdx` and its `layout.tsx`             |
+| Home page photo                         | `src/app/(frontend)/engagement.png`                                      |
+| Favicons and other images               | `public/`                                                                |
+| Pages, navigation and registry items    | `/admin`                                                                 |
+| Visual test snapshots and their default | `tests/screenshot.spec.ts-snapshots`, `.github/workflows/playwright.yml` |
 
-The easiest way to deploy your Next.js app is to use the
-[Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
-from the creators of Next.js.
+## Optional services
 
-Check out our
-[Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying)
-for more details.
+Each service is off until you configure it. `.env.example` lists every variable.
+
+### Site URL
+
+Set `NEXT_PUBLIC_SERVER_URL` to your site's origin. The sitemap and `robots.txt`
+use it. On Vercel it falls back to the project's production domain.
+
+### Photo gallery
+
+The AWS CDK stack in `cdk/` creates the bucket and a role that only your Vercel
+project's production environment can assume. It needs
+[Vercel OIDC federation](https://vercel.com/docs/oidc/aws) set up in your AWS
+account.
+
+```bash
+pnpm exec cdk deploy -c vercelTeam=<team-slug> -c vercelProject=<project-name>
+```
+
+Use the stack's outputs for `AWS_ROLE_ARN`, `S3_BUCKET` and
+`NEXT_PUBLIC_S3_BUCKET`, and set `AWS_REGION`. `/api/image` only reads from that
+bucket. To let it fetch from other hosts as well, add them to `REMOTE_PATTERNS`
+in `src/lib/image-server.ts`.
+
+### Registry and Honeymoon Fund
+
+The registry is closed unless `REGISTRY_OPEN` is exactly `true`. While it's
+closed, the pages still show the items, but purchases and contributions are
+refused. Registry Purchases don't need Stripe. The Honeymoon Fund does:
+
+1. Set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY`.
+2. In Stripe, add a webhook to `https://<your-site>/api/stripe/webhook` for
+   `payment_intent.succeeded` and `payment_intent.payment_failed`.
+3. Set `STRIPE_WEBHOOK_SECRET` to the webhook's signing secret.
+
+The webhook is what marks a Honeymoon Contribution as paid.
+
+### Analytics and error reporting
+
+Set the `MIXPANEL_*` variables for analytics. For Sentry, set
+`NEXT_PUBLIC_SENTRY_DSN`, plus `SENTRY_ORG`, `SENTRY_PROJECT` and
+`SENTRY_AUTH_TOKEN` if you want source maps uploaded during builds.
+
+## Deploy
+
+Import the repo into Vercel, add a Postgres database and set the variables from
+`.env.example`. Set the build command to `pnpm build:ci` so that migrations run
+before each build.
+
+## License
+
+The source code is under the [MIT License](LICENSE).
+
+The license doesn't cover the personal content: photos and other images,
+including visual test snapshots, the story in `our-story`, and Rachel and Jack's
+names and wedding details. Please replace these in your fork. All rights in them
+are reserved.

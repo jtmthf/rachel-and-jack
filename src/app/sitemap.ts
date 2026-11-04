@@ -1,4 +1,4 @@
-import { SITE_ORIGIN } from '@/lib/contants';
+import { getServerSideURL } from '@/lib/get-url';
 import configPromise from '@payload-config';
 import { MetadataRoute } from 'next';
 import { getPayload } from 'payload';
@@ -8,6 +8,7 @@ export const revalidate = 0;
 export const dynamicParams = true;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const origin = getServerSideURL();
   const payload = await getPayload({ config: configPromise });
   const pages = await payload.find({
     collection: 'pages',
@@ -28,13 +29,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: SITE_ORIGIN,
+      url: origin,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${SITE_ORIGIN}/our-story`,
+      url: `${origin}/our-story`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
@@ -42,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...pages.docs.map(
       (page) =>
         ({
-          url: `${SITE_ORIGIN}/${page.slug}`,
+          url: `${origin}/${page.slug}`,
           lastModified: new Date(page.updatedAt),
           changeFrequency: 'daily',
           priority: 0.8,

@@ -3,12 +3,13 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
-const TEAM_SLUG = 'jack-moores-projects';
-const PROJECT_NAME = 'rachel-and-jack';
-
 export class ImageLoaderStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // Pass with: cdk deploy -c vercelTeam=<team-slug> -c vercelProject=<project>
+    const TEAM_SLUG: string = this.node.getContext('vercelTeam');
+    const PROJECT_NAME: string = this.node.getContext('vercelProject');
 
     const vercelRole = new iam.Role(this, 'VercelRole', {
       assumedBy: new iam.FederatedPrincipal(

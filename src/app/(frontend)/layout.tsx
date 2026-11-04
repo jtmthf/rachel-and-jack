@@ -1,6 +1,7 @@
 import { AdminBar } from '@/components/admin-bar';
 import { Navbar } from '@/components/navbar';
 import PageViewed from '@/lib/analytics/page-viewed';
+import { siteConfig } from '@/site.config';
 import configPromise from '@payload-config';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
@@ -8,9 +9,8 @@ import { getPayload } from 'payload';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Rachel & Jack's Wedding",
-  description:
-    "Rachel and Jack's wedding | September 6th, 2025 at Nashville's Schermerhorn Symphony Center",
+  title: siteConfig.title,
+  description: siteConfig.description,
 };
 
 export default async function RootLayout({
