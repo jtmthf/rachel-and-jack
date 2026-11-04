@@ -59,7 +59,8 @@ Replace the personal content before you publish:
 
 ## Optional services
 
-Each service is off until you configure it. `.env.example` lists every variable.
+The site runs without these, but the features that need them won't work until
+you set them up. `.env.example` lists every variable.
 
 ### Site URL
 

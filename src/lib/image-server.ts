@@ -7,12 +7,19 @@ import { Readable } from 'stream';
 import { resolveImageSource, type RemotePattern } from './image-source';
 
 export const app = new Hono().basePath('/api/image');
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION!,
-  credentials: awsCredentialsProvider({
-    roleArn: process.env.AWS_ROLE_ARN!,
-  }),
-});
+
+// Built on first use, because the constructor throws when AWS_REGION is empty
+// and the route must still load on a site that doesn't use S3.
+let s3Client: S3Client | undefined;
+function getS3Client() {
+  s3Client ??= new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: awsCredentialsProvider({
+      roleArn: process.env.AWS_ROLE_ARN!,
+    }),
+  });
+  return s3Client;
+}
 
 // Configuration
 // Hosts this route may fetch images from, besides our S3 bucket. For example:
@@ -62,7 +69,7 @@ async function fetchImageStream(src: string): Promise<Readable> {
       Key: source.key,
     });
 
-    const response = await s3Client.send(command);
+    const response = await getS3Client().send(command);
 
     if (!response.Body) {
       throw new Error('Empty S3 response');
