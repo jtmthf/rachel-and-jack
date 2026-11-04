@@ -4,8 +4,8 @@ import { revalidateDelete, revalidatePage } from './hooks/revalidatePage';
 export const RegistryPurchase: CollectionConfig = {
   slug: 'registry-purchase',
   access: {
-    read: () => true,
-    create: () => true,
+    read: ({ req }) => Boolean(req.user),
+    create: ({ req }) => Boolean(req.user),
   },
   admin: {
     defaultColumns: ['quantity', 'purchaserFirstName', 'purchaserLastName'],

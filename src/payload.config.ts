@@ -27,6 +27,11 @@ import { Navigation } from './globals/Navigation';
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
+const payloadSecret = process.env.PAYLOAD_SECRET;
+if (!payloadSecret) {
+  throw new Error('PAYLOAD_SECRET environment variable is required');
+}
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -50,7 +55,7 @@ export default buildConfig({
   ],
   globals: [Navigation],
   editor: defaultLexical,
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: payloadSecret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -84,7 +89,7 @@ export default buildConfig({
     }),
     stripePlugin({
       stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-      rest: true,
+      rest: false,
     }),
   ],
 });
