@@ -95,6 +95,24 @@ function FormLabel({
   );
 }
 
+/** Shows an error that belongs to the whole form rather than one field. */
+function FormError({ className, ...props }: React.ComponentProps<'p'>) {
+  const { errors } = React.useContext(FormContext);
+
+  if (!errors._form) return null;
+
+  return (
+    <p
+      role="alert"
+      data-slot="form-error"
+      className={cn('text-destructive text-sm', className)}
+      {...props}
+    >
+      {errors._form}
+    </p>
+  );
+}
+
 type FormSubmitProps = React.ComponentProps<typeof Button> & {
   onSubmitSuccess?: () => void;
   onSubmitError?: () => void;
@@ -110,15 +128,23 @@ function FormSubmit({
   const status = useFormStatus();
   const state = React.useContext(FormContext);
 
+  const wasPending = React.useRef(false);
+
+  // Report the outcome only when a submission finishes.
   React.useEffect(() => {
-    if (status.pending) return;
+    if (status.pending) {
+      wasPending.current = true;
+      return;
+    }
+    if (!wasPending.current) return;
+    wasPending.current = false;
 
     if (state.success) {
       onSubmitSuccess?.();
     } else {
       onSubmitError?.();
     }
-  }, [status.pending, state.success, props]);
+  }, [status.pending, state.success, onSubmitSuccess, onSubmitError]);
 
   return (
     <Form.Submit asChild>
@@ -136,6 +162,7 @@ function FormSubmit({
 
 export {
   FormControl,
+  FormError,
   FormField,
   FormLabel,
   FormMessage,

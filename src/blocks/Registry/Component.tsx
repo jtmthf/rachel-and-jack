@@ -7,23 +7,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { registry_purchase } from '@/payload-generated-schema';
+import { isRegistryOpen } from '@/lib/registry-status';
 import {
   RegistryBlock as RegistryBlockProps,
   RegistryItem,
 } from '@/payload-types';
-import configPromise from '@payload-config';
-import { inArray, sql } from '@payloadcms/db-vercel-postgres/drizzle';
 import Image from 'next/image';
-import { getPayload } from 'payload';
-import { cache } from 'react';
 import { BaseBlockProps } from '../RenderBlocks';
 import { HoneymoonFundCard } from './HoneymoonFundCard';
+import { countRegistryPurchases } from './queries';
 import { RegistryItemDialog } from './RegistryItemDialog';
 
 type Props = BaseBlockProps & RegistryBlockProps;
 
 export default async function RegistryBlock({ items }: Props) {
+  const open = isRegistryOpen();
   const registryItems =
     items?.filter((item): item is RegistryItem => typeof item === 'object') ??
     [];
@@ -44,13 +42,13 @@ export default async function RegistryBlock({ items }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <HoneymoonFundCard />
+      <HoneymoonFundCard open={open} />
 
       {availableItems.map((item) => (
-        <RegistryItemCard key={item.id} item={item} />
+        <RegistryItemCard key={item.id} item={item} open={open} />
       ))}
       {purchasedItems.map((item) => (
-        <RegistryItemCard key={item.id} item={item} />
+        <RegistryItemCard key={item.id} item={item} open={open} />
       ))}
     </div>
   );
@@ -58,10 +56,12 @@ export default async function RegistryBlock({ items }: Props) {
 
 type RegistryItemCardProps = {
   item: RegistryItem & { purchasedCount: number };
+  open: boolean;
 };
 
 async function RegistryItemCard({
   item: { purchasedCount, ...item },
+  open,
 }: RegistryItemCardProps) {
   const formatPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -106,29 +106,12 @@ async function RegistryItemCard({
         )}
       </CardContent>
       <CardFooter>
-        <RegistryItemDialog item={item} purchasedCount={purchasedCount} />
+        <RegistryItemDialog
+          item={item}
+          purchasedCount={purchasedCount}
+          open={open}
+        />
       </CardFooter>
     </Card>
   );
 }
-
-const countRegistryPurchases = cache(async (itemIds: number[]) => {
-  const payload = await getPayload({ config: configPromise });
-
-  const result = await payload.db.drizzle
-    .select({
-      registryItem: registry_purchase.registryItem,
-      purchasedCount:
-        sql`coalesce(sum(${registry_purchase.quantity}), 0)`.mapWith(Number),
-    })
-    .from(registry_purchase)
-    .where(inArray(registry_purchase.registryItem, itemIds))
-    .groupBy(registry_purchase.registryItem);
-
-  return new Map(
-    result.map(({ registryItem, purchasedCount }) => [
-      registryItem,
-      purchasedCount,
-    ]),
-  );
-});
