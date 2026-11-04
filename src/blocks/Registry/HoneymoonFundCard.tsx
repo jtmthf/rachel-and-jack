@@ -25,14 +25,18 @@ import {
   useElements,
   useStripe,
 } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { Heart } from 'lucide-react';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
+import { Heart, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-);
+let stripePromise: Promise<Stripe | null> | undefined;
+
+// Loaded when the form first opens, so a closed registry never loads Stripe.
+function getStripePromise() {
+  stripePromise ??= loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  return stripePromise;
+}
 
 function CheckoutForm({
   amount,
@@ -50,6 +54,7 @@ function CheckoutForm({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [paymentReady, setPaymentReady] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -82,7 +87,14 @@ function CheckoutForm({
         }),
       });
 
-      const { clientSecret } = await response.json();
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setError(body?.error ?? 'Payment failed. Please try again.');
+        return;
+      }
+
+      const { clientSecret } = body;
 
       const result = await stripe.confirmPayment({
         elements,
@@ -148,13 +160,25 @@ function CheckoutForm({
           id="message"
           className="border-input min-h-[80px] w-full rounded-md border bg-transparent px-3 py-2 text-sm"
           value={message}
+          maxLength={500}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Leave a special message for the couple..."
         />
       </div>
 
-      <div className="rounded-md border p-3">
+      <div className="relative min-h-[200px] rounded-md border p-3">
+        {!paymentReady && (
+          <div
+            role="status"
+            className="text-muted-foreground absolute inset-0 flex items-center justify-center gap-2 text-sm"
+          >
+            <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+            Loading payment form...
+          </div>
+        )}
         <PaymentElement
+          className={paymentReady ? 'visible' : 'invisible'}
+          onReady={() => setPaymentReady(true)}
           options={{
             layout: 'tabs',
             defaultValues: {
@@ -195,10 +219,14 @@ const formatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 });
 
-export function HoneymoonFundCard() {
+export function HoneymoonFundCard({ open }: { open: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>('');
   const [showThankYou, setShowThankYou] = useState(false);
+
+  const thankYouTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(thankYouTimeout.current), []);
 
   const handleAmountChange = (input: string) => {
     const numericValue = input.replace(/[^0-9]/g, '');
@@ -210,7 +238,7 @@ export function HoneymoonFundCard() {
 
   const handleSuccess = () => {
     setShowThankYou(true);
-    setTimeout(() => {
+    thankYouTimeout.current = setTimeout(() => {
       setIsOpen(false);
       setShowThankYou(false);
       setAmount('');
@@ -237,65 +265,74 @@ export function HoneymoonFundCard() {
         </CardDescription>
       </CardContent>
       <CardFooter>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full" size="lg">
-              Contribute to Our Honeymoon
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            {!showThankYou ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle>Honeymoon Fund Contribution</DialogTitle>
-                  <DialogDescription>
-                    Choose any amount to contribute to our honeymoon adventure
-                  </DialogDescription>
-                </DialogHeader>
+        {!open && (
+          <Button disabled className="w-full" size="lg">
+            The Honeymoon Fund is closed
+          </Button>
+        )}
+        {open && (
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full" size="lg">
+                Contribute to Our Honeymoon
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              {!showThankYou ? (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>Honeymoon Fund Contribution</DialogTitle>
+                    <DialogDescription>
+                      Choose any amount to contribute to our honeymoon adventure
+                    </DialogDescription>
+                  </DialogHeader>
 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="amount" className="mb-2">
-                      Enter Dollar Amount
-                    </Label>
-                    <Input
-                      id="amount"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="$"
-                      value={amount ? formatter.format(parseInt(amount)) : ''}
-                      onChange={(e) => handleAmountChange(e.target.value)}
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="amount" className="mb-2">
+                        Enter Dollar Amount
+                      </Label>
+                      <Input
+                        id="amount"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="$"
+                        value={amount ? formatter.format(parseInt(amount)) : ''}
+                        onChange={(e) => handleAmountChange(e.target.value)}
+                      />
+                    </div>
+
+                    <Elements
+                      stripe={getStripePromise()}
+                      options={{
+                        mode: 'payment',
+                        currency: 'usd',
+                        amount: displayAmount * 100,
+                      }}
+                    >
+                      <CheckoutForm
+                        amount={displayAmount}
+                        onSuccess={handleSuccess}
+                        isEnabled={isValidAmount}
+                      />
+                    </Elements>
                   </div>
-
-                  <Elements
-                    stripe={stripePromise}
-                    options={{
-                      mode: 'payment',
-                      currency: 'usd',
-                      amount: displayAmount * 100,
-                    }}
-                  >
-                    <CheckoutForm
-                      amount={displayAmount}
-                      onSuccess={handleSuccess}
-                      isEnabled={isValidAmount}
-                    />
-                  </Elements>
+                </>
+              ) : (
+                <div className="py-8 text-center">
+                  <Heart className="text-primary mx-auto mb-4 h-16 w-16" />
+                  <DialogTitle className="mb-2 text-2xl">
+                    Thank You!
+                  </DialogTitle>
+                  <DialogDescription className="text-base">
+                    Your generous gift means the world to us. We can't wait to
+                    share our honeymoon adventures with you!
+                  </DialogDescription>
                 </div>
-              </>
-            ) : (
-              <div className="py-8 text-center">
-                <Heart className="text-primary mx-auto mb-4 h-16 w-16" />
-                <DialogTitle className="mb-2 text-2xl">Thank You!</DialogTitle>
-                <DialogDescription className="text-base">
-                  Your generous gift means the world to us. We can't wait to
-                  share our honeymoon adventures with you!
-                </DialogDescription>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
       </CardFooter>
     </Card>
   );

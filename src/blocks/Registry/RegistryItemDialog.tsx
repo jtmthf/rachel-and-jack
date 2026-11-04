@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   FormControl,
+  FormError,
   FormField,
   FormLabel,
   FormMessage,
@@ -40,6 +41,7 @@ import { submitRegistryPurchase } from './actions';
 type Props = {
   purchasedCount: number;
   item: RegistryItem;
+  open: boolean;
 };
 
 type ViewState =
@@ -51,11 +53,19 @@ type ViewState =
 
 type Flow = 'new-purchase' | 'existing-purchase';
 
-export function RegistryItemDialog({ item, purchasedCount }: Props) {
+export function RegistryItemDialog({ item, purchasedCount, open }: Props) {
   const [viewState, setViewState] = useState<ViewState>('initial');
   const [flow, setFlow] = useState<Flow>('new-purchase');
 
   const purchased = purchasedCount >= (item.quantityRequested ?? 0);
+
+  if (!open) {
+    return (
+      <Button disabled className="w-full">
+        {purchased ? 'This gift has been purchased' : 'The registry is closed'}
+      </Button>
+    );
+  }
 
   return (
     <Dialog>
@@ -385,7 +395,7 @@ function StoreView({ item, setViewState }: ViewStateProps) {
   );
 }
 
-function ContactInfoView({ setViewState }: ViewStateProps) {
+function ContactInfoView({ flow, setViewState }: ViewStateProps) {
   return (
     <>
       <DialogHeader>
@@ -393,7 +403,11 @@ function ContactInfoView({ setViewState }: ViewStateProps) {
           type="button"
           variant="ghost"
           className="self-start p-0 font-bold"
-          onClick={() => setViewState('store')}
+          onClick={() =>
+            setViewState(
+              flow === 'existing-purchase' ? 'store' : 'already-purchased',
+            )
+          }
         >
           <ArrowLeft />
           Back
@@ -422,6 +436,7 @@ function ContactInfoView({ setViewState }: ViewStateProps) {
           </FormMessage>
         </FormField>
       </div>
+      <FormError className="mb-2" />
       <FormSubmit
         className="mt-auto w-full"
         onSubmitSuccess={() => setViewState('submitted')}

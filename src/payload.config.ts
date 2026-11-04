@@ -1,6 +1,5 @@
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres';
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
-import { stripePlugin } from '@payloadcms/plugin-stripe';
 import { s3Storage } from '@payloadcms/storage-s3';
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob';
 import { awsCredentialsProvider } from '@vercel/oidc-aws-credentials-provider';
@@ -86,10 +85,6 @@ export default buildConfig({
         media: true,
       },
       token: process.env.BLOB_READ_WRITE_TOKEN,
-    }),
-    stripePlugin({
-      stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-      rest: false,
     }),
   ],
 });
