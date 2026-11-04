@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { RegistryItem, RegistryPurchase } from '@/payload-types';
+import { siteConfig } from '@/site.config';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -459,7 +460,7 @@ function SubmittedView({ flow, item }: ViewStateProps) {
           means the world to us. We can't wait to celebrate with you soon!
           <br />
           <br />
-          Love, Rachel and Jack
+          Love, {siteConfig.namesInProse}
           <br />
           <br />
           {flow === 'new-purchase' && (

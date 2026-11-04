@@ -1,10 +1,11 @@
+import { siteConfig } from '@/site.config';
 import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Rachel & Jack',
-    short_name: 'R&J',
-    description: "Rachel & Jack's wedding website",
+    name: siteConfig.names,
+    short_name: siteConfig.shortName,
+    description: siteConfig.manifestDescription,
     start_url: '/',
     display: 'standalone',
     background_color: '#fff',

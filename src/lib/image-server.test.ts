@@ -19,4 +19,18 @@ describe('GET /api/image', () => {
 
     expect(response.status).toBe(403);
   });
+
+  it('loads and rejects sources when S3 is not configured', async () => {
+    vi.resetModules();
+    vi.stubEnv('AWS_REGION', '');
+    vi.stubEnv('AWS_ROLE_ARN', '');
+    vi.stubEnv('NEXT_PUBLIC_S3_BUCKET', '');
+
+    const { app: unconfigured } = await import('./image-server');
+    const response = await unconfigured.request(
+      `/api/image?${new URLSearchParams({ src: 's3://any/photo.jpg', width: '64' })}`,
+    );
+
+    expect(response.status).toBe(403);
+  });
 });

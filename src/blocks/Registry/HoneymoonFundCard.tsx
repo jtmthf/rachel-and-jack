@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { siteConfig } from '@/site.config';
 import {
   Elements,
   PaymentElement,
@@ -260,8 +261,8 @@ export function HoneymoonFundCard({ open }: { open: boolean }) {
         <CardTitle className="mb-2">Honeymoon Fund</CardTitle>
         <CardDescription className="mb-4 flex-1">
           Your generous contribution will help us create unforgettable memories
-          on our honeymoon adventure in Bali, Indonesia. Thank you for being
-          part of our journey!
+          on our honeymoon adventure in {siteConfig.honeymoonDestination}. Thank
+          you for being part of our journey!
         </CardDescription>
       </CardContent>
       <CardFooter>
