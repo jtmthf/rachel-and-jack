@@ -504,6 +504,7 @@ export interface ThingsToDo {
 export interface Photo {
   id: number;
   alt: string;
+  placeholder?: string | null;
   folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -869,6 +870,7 @@ export interface ThingsToDoBlockSelect<T extends boolean = true> {
  */
 export interface PhotoSelect<T extends boolean = true> {
   alt?: T;
+  placeholder?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;

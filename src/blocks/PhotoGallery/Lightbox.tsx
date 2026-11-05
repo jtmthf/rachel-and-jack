@@ -2,20 +2,34 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
+  ArrowUpRight,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
-  Share2,
+  Share,
   X,
+  type LucideProps,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { imageLoader, photoSrc } from './photo-image';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from 'react';
+import {
+  fullPhotoImage,
+  imageLoader,
+  photoSrc,
+  placeholderImage,
+  thumbnailSizes,
+} from './photo-image';
 import type { GalleryPhoto, GallerySection } from './sections';
 
 const SWIPE_DISTANCE = 50;
-const PLACEHOLDER_WIDTH = 256;
-const FULL_QUALITY = 85;
+// Thin lines suit icons sitting over photographs.
+const iconProps: LucideProps = { strokeWidth: 1.5, 'aria-hidden': true };
 
 const controlClass =
   'flex size-11 items-center justify-center rounded-full text-white/85 hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-white';
@@ -45,6 +59,10 @@ export function Lightbox({
   const hasPrevious = index > 0;
   const hasNext = index < photos.length - 1;
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const [settled, setSettled] = useState<ReadonlySet<number>>(new Set());
+  const markSettled = useCallback((id: number) => {
+    setSettled((previous) => new Set(previous).add(id));
+  }, []);
 
   const previous = () => hasPrevious && onIndexChange(index - 1);
   const next = () => hasNext && onIndexChange(index + 1);
@@ -66,10 +84,11 @@ export function Lightbox({
   };
 
   const position = `${(indexInSection + 1).toLocaleString('en-US')} of ${section.photos.length.toLocaleString('en-US')}`;
-  // The neighbours stay mounted but hidden, so stepping to them is instant.
-  const mounted = [index - 1, index, index + 1].filter(
-    (i) => i >= 0 && i < photos.length,
-  );
+  // The neighbours stay mounted but hidden, so stepping to them is instant. They
+  // wait for the current photo, because resizing them at the same time slows it.
+  const mounted = (
+    settled.has(photo.id) ? [index - 1, index, index + 1] : [index]
+  ).filter((i) => i >= 0 && i < photos.length);
 
   return (
     <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
@@ -104,14 +123,14 @@ export function Lightbox({
               aria-label="Open full-size original in a new tab"
               title="Open full-size original"
             >
-              <ExternalLink className="size-5" />
+              <ArrowUpRight className="size-6" {...iconProps} />
             </a>
             <DialogPrimitive.Close
               className={controlClass}
               aria-label="Close"
               title="Close"
             >
-              <X className="size-6" />
+              <X className="size-6" {...iconProps} />
             </DialogPrimitive.Close>
           </header>
 
@@ -127,6 +146,8 @@ export function Lightbox({
                 photo={photos[i].photo}
                 alt={photos[i].photo.alt ?? photos[i].section.alt}
                 current={i === index}
+                settled={settled.has(photos[i].photo.id)}
+                onSettled={markSettled}
               />
             ))}
             <button
@@ -136,7 +157,7 @@ export function Lightbox({
               aria-label="Previous photo"
               className={`${controlClass} absolute top-1/2 left-2 hidden -translate-y-1/2 bg-black/40 disabled:invisible sm:flex`}
             >
-              <ChevronLeft className="size-7" />
+              <ChevronLeft className="size-7" {...iconProps} />
             </button>
             <button
               type="button"
@@ -145,7 +166,7 @@ export function Lightbox({
               aria-label="Next photo"
               className={`${controlClass} absolute top-1/2 right-2 hidden -translate-y-1/2 bg-black/40 disabled:invisible sm:flex`}
             >
-              <ChevronRight className="size-7" />
+              <ChevronRight className="size-7" {...iconProps} />
             </button>
           </div>
         </DialogPrimitive.Content>
@@ -158,14 +179,20 @@ function FullPhoto({
   photo,
   alt,
   current,
+  settled,
+  onSettled,
 }: {
   photo: GalleryPhoto;
   alt: string;
   current: boolean;
+  settled: boolean;
+  onSettled: (id: number) => void;
 }) {
   const aspect = photo.width / photo.height;
-  const src = photoSrc(photo);
-  const placeholder = imageLoader({ src, width: PLACEHOLDER_WIDTH });
+  const background = useMemo(
+    () => placeholderImage(photo.placeholder),
+    [photo.placeholder],
+  );
 
   return (
     <div
@@ -177,18 +204,30 @@ function FullPhoto({
         style={{
           aspectRatio: aspect,
           width: `min(100cqw, ${aspect} * 100cqh)`,
-          backgroundImage: `url("${placeholder}")`,
+          backgroundImage: background,
         }}
       >
+        {/* The grid's file, so a photo opened from the grid shows at once. */}
+        {current && !settled && (
+          <Image
+            loader={imageLoader}
+            src={photoSrc(photo)}
+            alt=""
+            fill
+            sizes={thumbnailSizes(photo)}
+            loading="eager"
+            draggable={false}
+            className="object-contain"
+          />
+        )}
         <Image
-          loader={imageLoader}
-          src={src}
+          {...fullPhotoImage(photo)}
           alt={alt}
-          fill
-          quality={FULL_QUALITY}
           loading="eager"
+          fetchPriority={current ? 'high' : 'low'}
           draggable={false}
-          sizes={`min(100vw, ${aspect.toFixed(3)} * 100vh)`}
+          onLoad={() => onSettled(photo.id)}
+          onError={() => onSettled(photo.id)}
           className="object-contain"
         />
       </div>
@@ -231,7 +270,7 @@ function ShareButton() {
         aria-label="Share this photo"
         title="Share this photo"
       >
-        <Share2 className="size-5" />
+        <Share className="size-5" {...iconProps} />
       </button>
     </>
   );

@@ -79,9 +79,15 @@ pnpm exec cdk deploy -c vercelTeam=<team-slug> -c vercelProject=<project-name>
 ```
 
 Use the stack's outputs for `AWS_ROLE_ARN`, `S3_BUCKET` and
-`NEXT_PUBLIC_S3_BUCKET`, and set `AWS_REGION`. `/api/image` only reads from that
-bucket. To let it fetch from other hosts as well, add them to `REMOTE_PATTERNS`
-in `src/lib/image-server.ts`.
+`NEXT_PUBLIC_S3_BUCKET`, and set `AWS_REGION`. `/api/image` only fetches
+originals from that bucket, and saves what it resizes there under
+`derivatives/`. To let it fetch from other hosts as well, add them to
+`REMOTE_PATTERNS` in `src/lib/image-server.ts`.
+
+Photos imported without the admin need two one-off scripts, whose headers
+explain how to run them. `scripts/backfill-photo-placeholders.ts` adds their
+blur placeholders, and `scripts/warm-images.mjs` saves their full-size files so
+that nobody waits for the first resize.
 
 ### Registry and Honeymoon Fund
 

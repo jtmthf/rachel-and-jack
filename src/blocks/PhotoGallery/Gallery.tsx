@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type PointerEvent,
 } from 'react';
 import { flushSync } from 'react-dom';
 import { CHAPTER_BAR_SPACE, ChapterBar } from './ChapterBar';
@@ -22,6 +23,7 @@ import {
   type GalleryLayout,
   type LayoutBlock,
 } from './layout';
+import { preloadFullPhoto } from './photo-image';
 import { photoLabel } from './photo-label';
 import type { GallerySection } from './sections';
 
@@ -31,6 +33,9 @@ const OVERSCAN_SCREENS = 1;
 // Rows must stay on screen this long before their photos load, so that dragging
 // the scrollbar across the gallery doesn't request every photo it passes.
 const IMAGE_LOAD_DELAY_MS = 200;
+// How long the mouse must rest on a photo before its full size starts loading,
+// so that moving across the grid doesn't request every photo it passes.
+const HOVER_PRELOAD_DELAY_MS = 120;
 
 function photoIdFromUrl() {
   const id = new URLSearchParams(window.location.search).get('photo');
@@ -250,6 +255,23 @@ export function Gallery({ sections }: { sections: GallerySection[] }) {
     stage.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true });
   };
 
+  const hoverPreload = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(hoverPreload.current), []);
+
+  const onStagePointerOver = (event: PointerEvent) => {
+    clearTimeout(hoverPreload.current);
+    if (event.pointerType !== 'mouse') return;
+    const thumbnail = (event.target as Element).closest<HTMLElement>(
+      '[data-photo-index]',
+    );
+    if (!thumbnail) return;
+    const { photo } = photos[Number(thumbnail.dataset.photoIndex)];
+    hoverPreload.current = setTimeout(
+      () => preloadFullPhoto(photo),
+      HOVER_PRELOAD_DELAY_MS,
+    );
+  };
+
   return (
     <div className="@container">
       {hasChapters && (
@@ -262,6 +284,7 @@ export function Gallery({ sections }: { sections: GallerySection[] }) {
       <div
         ref={stageRef}
         className="relative -mt-10"
+        onPointerOver={onStagePointerOver}
         style={layout ? { height: layout.height } : undefined}
       >
         {layout ? (

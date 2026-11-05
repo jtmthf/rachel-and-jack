@@ -24,6 +24,19 @@ describe('buildSections', () => {
     expect(sections[1].photos.map((p) => p.id)).toEqual([10, 12]);
   });
 
+  it('passes on placeholders and leaves out empty ones', () => {
+    const [section] = buildSections(
+      [{ id: 1, name: 'Dancing' }],
+      [
+        { ...photo(10, 1), placeholder: 'abc' },
+        { ...photo(11, 1), placeholder: null },
+      ],
+    );
+
+    expect(section.photos[0].placeholder).toBe('abc');
+    expect(section.photos[1]).not.toHaveProperty('placeholder');
+  });
+
   it('leaves out folders without photos and photos without files', () => {
     const sections = buildSections(
       [

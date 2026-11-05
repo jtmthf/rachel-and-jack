@@ -76,6 +76,7 @@ async function getSections(folderName: string) {
       filename: true,
       width: true,
       height: true,
+      placeholder: true,
       folder: true,
     },
     overrideAccess: true,

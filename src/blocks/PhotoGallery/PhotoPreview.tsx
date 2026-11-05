@@ -27,6 +27,7 @@ export function PhotoPreview({ section }: { section: GallerySection }) {
               photoIndex={index}
               label={photoLabel(section, photo, index)}
               eager={index < EAGER_PHOTOS}
+              flatPlaceholder
               className="min-w-0"
               style={{
                 aspectRatio: aspect,

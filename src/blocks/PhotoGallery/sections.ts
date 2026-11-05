@@ -5,6 +5,8 @@ export type GalleryPhoto = {
   height: number;
   /** Left out when it matches the section's alt, to keep the page small. */
   alt?: string;
+  /** A ThumbHash. Photos added outside the admin may not have one yet. */
+  placeholder?: string;
 };
 
 export type GallerySection = {
@@ -23,6 +25,7 @@ type PhotoRecord = {
   filename?: string | null;
   width?: number | null;
   height?: number | null;
+  placeholder?: string | null;
   folder?: number | { id: number } | null;
 };
 
@@ -78,6 +81,7 @@ export function buildSections(
         width: photo.width || FALLBACK_WIDTH,
         height: photo.height || FALLBACK_HEIGHT,
         ...(photo.alt === alt ? {} : { alt: photo.alt }),
+        ...(photo.placeholder ? { placeholder: photo.placeholder } : {}),
       })),
     });
   }

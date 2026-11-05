@@ -149,6 +149,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.12)
+      thumbhash:
+        specifier: ^0.1.1
+        version: 0.1.1
     devDependencies:
       '@mdx-js/loader':
         specifier: ^3.1.1
@@ -10281,6 +10284,12 @@ packages:
         integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==,
       }
 
+  thumbhash@0.1.1:
+    resolution:
+      {
+        integrity: sha512-kH5pKeIIBPQXAOni2AiY/Cu/NKdkFREdpH+TLdM0g6WA7RriCv0kPLgP731ady67MhTAqrVG/4mnEeibVuCJcg==,
+      }
+
   tinybench@6.2.3:
     resolution:
       {
@@ -18397,6 +18406,8 @@ snapshots:
   thread-stream@3.1.0:
     dependencies:
       real-require: 0.2.0
+
+  thumbhash@0.1.1: {}
 
   tinybench@6.2.3: {}
 
