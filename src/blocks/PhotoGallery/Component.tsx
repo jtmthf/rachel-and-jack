@@ -1,42 +1,38 @@
-import { cn } from '@/lib/utils';
 import type { PhotoGalleryBlock as PhotoGalleryBlockProps } from '@/payload-types';
 import configPromise from '@payload-config';
-import { Baskervville_SC } from 'next/font/google';
 import { getPayload } from 'payload';
-import { cache } from 'react';
 import type { BaseBlockProps } from '../RenderBlocks';
-import { PhotoGridClient } from './PhotoGridClient';
-
-const baskerville = Baskervville_SC({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-});
+import { Gallery } from './Gallery';
+import { buildSections } from './sections';
 
 type Props = BaseBlockProps & PhotoGalleryBlockProps;
 
 export default async function PhotoGalleryBlock({ folder }: Props) {
-  const sections = await getFolderSections(folder);
+  const sections = await getSections(folder);
+
+  if (sections.length === 0) {
+    return <p className="text-center">No photos have been added here yet.</p>;
+  }
+
+  const photoCount = sections.reduce((n, s) => n + s.photos.length, 0);
 
   return (
-    <div className="space-y-12">
-      {sections.map(({ name, photos }) => (
-        <section key={name ?? 'root'}>
-          {name && (
-            <h3
-              className={cn('mb-4 text-center text-4xl', baskerville.className)}
-            >
-              {name}
-            </h3>
-          )}
-          <PhotoGridClient photos={photos} />
-        </section>
-      ))}
-    </div>
+    <>
+      <p className="text-foreground/80 text-center">
+        {photoCount.toLocaleString('en-US')}{' '}
+        {photoCount === 1 ? 'photograph' : 'photographs'}
+        {sections.length > 1 && ` in ${sections.length} chapters`}
+      </p>
+      <Gallery sections={sections} />
+    </>
   );
 }
 
-const getFolderSections = cache(async (folderName: string) => {
+// Sections and photos are shown newest record first. To reorder them, change
+// their createdAt timestamps.
+const NEWEST_FIRST = '-createdAt';
+
+async function getSections(folderName: string) {
   const payload = await getPayload({ config: configPromise });
 
   const {
@@ -46,6 +42,9 @@ const getFolderSections = cache(async (folderName: string) => {
     where: { name: { equals: folderName.toLowerCase() } },
     limit: 1,
     pagination: false,
+    depth: 0,
+    joins: false,
+    select: { name: true },
     overrideAccess: true,
   });
 
@@ -54,30 +53,33 @@ const getFolderSections = cache(async (folderName: string) => {
   const { docs: subFolders } = await payload.find({
     collection: 'payload-folders',
     where: { folder: { equals: topFolder.id } },
+    sort: NEWEST_FIRST,
     pagination: false,
+    depth: 0,
+    joins: false,
+    select: { name: true },
     overrideAccess: true,
   });
 
-  if (subFolders.length === 0) {
-    const photos = await getPhotosForFolder(topFolder.id);
-    return [{ name: null, photos }];
-  }
+  // A folder with no subfolders is one untitled section.
+  const folders =
+    subFolders.length > 0 ? subFolders : [{ id: topFolder.id, name: null }];
 
-  return Promise.all(
-    subFolders.map(async ({ id, name }) => ({
-      name,
-      photos: await getPhotosForFolder(id),
-    })),
-  );
-});
-
-const getPhotosForFolder = cache(async (folderId: number) => {
-  const payload = await getPayload({ config: configPromise });
-  const { docs } = await payload.find({
+  const { docs: photos } = await payload.find({
     collection: 'photo',
-    where: { folder: { equals: folderId } },
+    where: { folder: { in: folders.map(({ id }) => id) } },
+    sort: NEWEST_FIRST,
     pagination: false,
+    depth: 0,
+    select: {
+      alt: true,
+      filename: true,
+      width: true,
+      height: true,
+      folder: true,
+    },
     overrideAccess: true,
   });
-  return docs;
-});
+
+  return buildSections(folders, photos);
+}
